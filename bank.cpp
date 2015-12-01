@@ -1,7 +1,8 @@
 #include <iostream>
+using namespace std;
 
 int main()
 {
-	std::cout << "Hello world! I am a bank!" << std::endl;
+	cout << "Hello world! I am a bank!" << endl;
 	return 0;
 }
