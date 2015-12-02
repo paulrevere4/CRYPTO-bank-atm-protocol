@@ -178,7 +178,7 @@ int main(int argc, char** argv)
 					getline(cin, leftover);
 					
 					bzero(buffer,256);
-					string msg = username + "Balance";
+					string msg = username + ".Balance";
 					strcpy(buffer,msg.c_str());
 					printf("Buffer now contains: %s\n", buffer);
 					
@@ -212,7 +212,7 @@ int main(int argc, char** argv)
 					getline(cin, leftover);
 					
 					bzero(buffer,256);
-					string msg = username + "Withdraw" + amount;
+					string msg = username + ".Withdraw." + amount;
 					strcpy(buffer,msg.c_str());
 					n = write(sockfd,buffer,strlen(buffer));
     
@@ -245,7 +245,7 @@ int main(int argc, char** argv)
 					if (pins.find(recipient) != pins.end())
 					{
 						bzero(buffer,256);
-						string msg = username + "Transfer" + amount + recipient;
+						string msg = username + ".Transfer." + amount + '.' + recipient;
 						strcpy(buffer,msg.c_str());
 						n = write(sockfd,buffer,strlen(buffer));
     
