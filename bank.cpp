@@ -60,11 +60,11 @@ int main(int argc, char** argv)
     connfd = accept(listenfd, (struct sockaddr*)NULL, NULL);
 
     n = recv(connfd, &recvBuff, 1023, 0);
-    printf("Recd: %d bytes\n");
+    printf("Recd: %d bytes\n", n);
     printf("Received message: %s\n", recvBuff);
 
-    /*snprintf(sendBuff, sizeof(sendBuff), "Hello this is the bank\n");
-    write(connfd, sendBuff, strlen(sendBuff)); */
+    snprintf(sendBuff, sizeof(sendBuff), "Hello this is the bank. We Received your message: \"%s\"\n", recvBuff);
+    write(connfd, sendBuff, strlen(sendBuff));
 
     close(connfd);
     sleep(1);
