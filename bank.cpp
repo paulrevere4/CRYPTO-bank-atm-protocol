@@ -74,16 +74,43 @@ int main(int argc, char** argv)
       sections.push_back(split);
     }
 
-    string username = sections[0];
     string output;
 
-    if (sections[1] == "Balance")
+    string username = "Charlie";
+    bool validUsername = false;
+    for (map<string, int>::iterator itr=balances.begin();itr!=balances.end();itr++)
+    {
+      if (itr->first == username)
+      {
+        validUsername = true;
+      }
+    }
+
+    if (!validUsername)
+    {
+      cout << "Your username has been compromised. Aborting session in 5" << endl;
+      sleep(1);
+      cout << "4" << endl;
+      sleep(1);
+      cout << "3" << endl;
+      sleep(1);
+      cout << "2" << endl;
+      sleep(1);
+      cout << "1" << endl;
+      sleep(1);
+      break;
+    }
+    else if (sections[1] == "Balance")
     {
       output = "Your balance is ";
     }
     else if (sections[1] == "Withdraw"){
       int amount = atoi(sections[2].c_str());
-      if (amount < 0)
+      if (amount > 10000 || sections[2].size() > 9)
+      {
+        output = "You may withdraw a maximum of $10,000 per transaction. Your balance is ";
+      }
+      else if (amount < 0)
       {
         output = "You must withdraw a positive amount. Your balance is ";
       }
@@ -100,7 +127,11 @@ int main(int argc, char** argv)
     else if (sections[1] == "Transfer")
     {
       int amount = atoi(sections[2].c_str());
-      if (amount < 0)
+      if (amount > 10000 || sections[2].size() > 9)
+      {
+        output = "You may transfer a maximum of $10,000 per transaction. Your balance is ";
+      }
+      else if (amount < 0)
       {
         output = "You must transfer a positive amount. Your balance is ";
       }
@@ -110,10 +141,28 @@ int main(int argc, char** argv)
       }
       else
       {
-        balances[username] -= amount;
-        balances[sections[3]] += amount;
-        output = "Transfer successful. Your balance is ";
+        string transfer_to = sections[3];
+        map<string, int>::iterator itr2;
+        bool found_transfer = false;
+        for (map<string, int>::iterator itr2=balances.begin();itr2!=balances.end();itr2++)
+        {
+          if (itr2->first == transfer_to)
+          {
+            balances[username] -= amount;
+            balances[transfer_to] += amount;
+            output = "Transfer successful. Your balance is ";
+            found_transfer = true;
+          }
+        }
+        if (!found_transfer)
+        {
+          output = "Unable to find target account. Please try again.\nYour balance is ";
+        }
       }
+    }
+    else
+    {
+      output = "Something went wrong. Please try again.\nYour balance is ";
     }
 
     snprintf(sendBuff, sizeof(sendBuff), "%s%d\n", output.c_str(), balances[username]);
