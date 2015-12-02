@@ -119,8 +119,8 @@ int main(int argc, char** argv)
     }
     else if (sections[1] == "Transfer")
     {
-      int amount = atoi(sections[2].c_str());
-      if (amount > 10000 || sections[2].size() > 9)
+      int amount = atoi(sections[3].c_str());
+      if (amount > 10000 || sections[3].size() > 9)
       {
         output = "You may transfer a maximum of $10,000 per transaction. Your balance is ";
       }
@@ -134,7 +134,7 @@ int main(int argc, char** argv)
       }
       else
       {
-        string transfer_to = sections[3];
+        string transfer_to = sections[2];
         bool found_transfer = (balances.find(transfer_to) != balances.end());
         
         if (found_transfer)

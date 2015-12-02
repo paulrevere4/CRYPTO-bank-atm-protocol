@@ -145,37 +145,37 @@ int main(int argc, char** argv)
 			else
 			{
 				
-				portno = atoi(argv[1]);
-    			sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    
-    			if (sockfd < 0)
-    			{
-    				perror("ERROR opening socket");
-    			}
-        
-    			server = gethostbyname("localhost");
-    
-    			if (server == NULL)
-    			{
-        			fprintf(stderr,"ERROR, no such host\n");
-        			exit(0);
-    			}
-    
-    			bzero((char *) &serv_addr, sizeof(serv_addr));
-    			serv_addr.sin_family = AF_INET;
-    			bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr,server->h_length);
-    			serv_addr.sin_port = htons(portno);
-    
-    			if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
-    			{
-        			perror("ERROR connecting");
-    			}
-				
 				if (command == "Balance")
 				{
 					
 					string leftover;
 					getline(cin, leftover);
+					
+					portno = atoi(argv[1]);
+    				sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    
+    				if (sockfd < 0)
+    				{
+    					perror("ERROR opening socket");
+    				}
+        
+    				server = gethostbyname("localhost");
+    
+    				if (server == NULL)
+    				{
+        				fprintf(stderr,"ERROR, no such host\n");
+        				exit(0);
+    				}
+    
+    				bzero((char *) &serv_addr, sizeof(serv_addr));
+    				serv_addr.sin_family = AF_INET;
+    				bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr,server->h_length);
+    				serv_addr.sin_port = htons(portno);
+    
+    				if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
+    				{
+        				perror("ERROR connecting");
+    				}
 					
 					bzero(buffer,256);
 					string msg = username + ".Balance";
@@ -199,6 +199,8 @@ int main(int argc, char** argv)
     				}
     
     				printf("%s\n",buffer);
+    				
+    				close(sockfd);
 				}
 
 				else if (command == "Withdraw")
@@ -209,40 +211,51 @@ int main(int argc, char** argv)
 					string leftover;
 					getline(cin, leftover);
 					
-					bzero(buffer,256);
-					string msg = username + ".Withdraw." + amount;
-					strcpy(buffer,msg.c_str());
-					n = write(sockfd,buffer,strlen(buffer));
-    
-    				if (n < 0) 
-    				{
-         				perror("ERROR writing to socket");
-    				}
-    
-    				bzero(buffer,256);
-    				n = read(sockfd,buffer,255);
-    
-    				if (n < 0)
-    				{
-         				perror("ERROR reading from socket");
-    				}
-    
-    				printf("%s\n",buffer);
-				}
-
-				else if (command == "Transfer")
-				{
-					string amount;
-					string recipient;
-					cin >> amount >> recipient;
-					
-					string leftover;
-					getline(cin, leftover);
-					
-					if (pins.find(recipient) != pins.end())
+					bool integer = true;
+					for (int i = 0; i < amount.size(); i++)
 					{
+						if (!isdigit(amount[i]))
+						{
+							integer = false;
+						}
+					}
+					
+					if (!integer)
+					{
+						cout << "ERROR: Amount must be an integer" << endl;
+					}
+					
+					else
+					{
+					
+						portno = atoi(argv[1]);
+    					sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    
+    					if (sockfd < 0)
+    					{
+    						perror("ERROR opening socket");
+    					}
+        
+    					server = gethostbyname("localhost");
+    
+    					if (server == NULL)
+    					{
+        					fprintf(stderr,"ERROR, no such host\n");
+        					exit(0);
+    					}
+    
+    					bzero((char *) &serv_addr, sizeof(serv_addr));
+    					serv_addr.sin_family = AF_INET;
+    					bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr,server->h_length);
+    					serv_addr.sin_port = htons(portno);
+    
+    					if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
+    					{
+        					perror("ERROR connecting");
+    					}
+					
 						bzero(buffer,256);
-						string msg = username + ".Transfer." + amount + '.' + recipient;
+						string msg = username + ".Withdraw." + amount;
 						strcpy(buffer,msg.c_str());
 						n = write(sockfd,buffer,strlen(buffer));
     
@@ -260,10 +273,91 @@ int main(int argc, char** argv)
     					}
     
     					printf("%s\n",buffer);
+    				
+    					close(sockfd);
 					}
+				}
+
+				else if (command == "Transfer")
+				{
+					string amount;
+					string recipient;
+					cin >> amount >> recipient;
+					
+					string leftover;
+					getline(cin, leftover);
+					
+					bool integer = true;
+					for (int i = 0; i < amount.size(); i++)
+					{
+						if (!isdigit(amount[i]))
+						{
+							integer = false;
+						}
+					}
+					
+					if (!integer)
+					{
+						cout << "ERROR: Amount must be an integer" << endl;
+					}
+					
 					else
 					{
-						cout << "ERROR: Invalid user" << endl;
+					
+						if (pins.find(recipient) != pins.end())
+						{
+							portno = atoi(argv[1]);
+    						sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    
+    						if (sockfd < 0)
+    						{
+    							perror("ERROR opening socket");
+    						}
+        
+    						server = gethostbyname("localhost");
+    
+    						if (server == NULL)
+    						{
+        						fprintf(stderr,"ERROR, no such host\n");
+        						exit(0);
+    						}
+    
+    						bzero((char *) &serv_addr, sizeof(serv_addr));
+    						serv_addr.sin_family = AF_INET;
+    						bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr,server->h_length);
+    						serv_addr.sin_port = htons(portno);
+    
+    						if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
+    						{
+        						perror("ERROR connecting");
+    						}
+						
+							bzero(buffer,256);
+							string msg = username + ".Transfer." + recipient + '.' + amount;
+							strcpy(buffer,msg.c_str());
+							n = write(sockfd,buffer,strlen(buffer));
+    
+    						if (n < 0) 
+    						{
+         						perror("ERROR writing to socket");
+    						}
+    
+    						bzero(buffer,256);
+    						n = read(sockfd,buffer,255);
+    
+    						if (n < 0)
+    						{
+         						perror("ERROR reading from socket");
+    						}
+    
+    						printf("%s\n",buffer);
+    					
+    						close(sockfd);
+						}
+						else
+						{
+							cout << "ERROR: Invalid user" << endl;
+						}
 					}
 				}
 				
@@ -275,7 +369,7 @@ int main(int argc, char** argv)
 					cout << "ERROR: Invalid command" << endl;
 				}
 
-				close(sockfd);
+				//close(sockfd);
 			}
 		}
 		cout << endl;
