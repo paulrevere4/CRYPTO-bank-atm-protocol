@@ -74,10 +74,6 @@ int main(int argc, char** argv)
       sections.push_back(split);
     }
 
-    for (unsigned int i=0;i<sections.size();i++){
-      cout << sections[i] << endl;
-    }
-
     string username = sections[0];
     string output;
 
@@ -87,7 +83,11 @@ int main(int argc, char** argv)
     }
     else if (sections[1] == "Withdraw"){
       int amount = atoi(sections[2].c_str());
-      if (amount > balances[username])
+      if (amount < 0)
+      {
+        output = "You must withdraw a positive amount. Your balance is ";
+      }
+      else if (amount > balances[username])
       {
         output = "Insufficient funds. Your balance is ";
       }
@@ -100,7 +100,11 @@ int main(int argc, char** argv)
     else if (sections[1] == "Transfer")
     {
       int amount = atoi(sections[2].c_str());
-      if(amount > balances[username])
+      if (amount < 0)
+      {
+        output = "You must transfer a positive amount. Your balance is ";
+      }
+      else if(amount > balances[username])
       {
         output = "Insufficient funds. Your balance is ";
       }

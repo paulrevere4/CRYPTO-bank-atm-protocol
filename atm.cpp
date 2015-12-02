@@ -180,11 +180,10 @@ int main(int argc, char** argv)
 					bzero(buffer,256);
 					string msg = username + ".Balance";
 					strcpy(buffer,msg.c_str());
-					printf("Buffer now contains: %s\n", buffer);
 					
 					n = write(sockfd,buffer,strlen(buffer));
     
-    				printf("Wrote %d bytes\n", n);
+    				//printf("Wrote %d bytes\n", n);
     
     				if (n < 0) 
     				{
@@ -200,7 +199,6 @@ int main(int argc, char** argv)
     				}
     
     				printf("%s\n",buffer);
-					cout << "Printing " << username << "'s balance" << endl;
 				}
 
 				else if (command == "Withdraw")
@@ -230,7 +228,6 @@ int main(int argc, char** argv)
     				}
     
     				printf("%s\n",buffer);
-					cout << "Withdrawing " << amount << " dollars from " << username << "'s account" << endl;
 				}
 
 				else if (command == "Transfer")
@@ -263,7 +260,6 @@ int main(int argc, char** argv)
     					}
     
     					printf("%s\n",buffer);
-						cout << "Transferring " << amount << " dollars from " << username << " to " << recipient << endl;
 					}
 					else
 					{
