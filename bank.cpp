@@ -10,6 +10,8 @@
 #include <sys/types.h>
 #include <time.h>
 #include <map>
+#include <sstream>
+#include <vector>
 
 #define BUFFER_SIZE = 1024
 
@@ -40,7 +42,6 @@ int main(int argc, char** argv)
   struct sockaddr_in serv_addr;
 
   char sendBuff[1025], recvBuff[1025];
-  time_t ticks;
 
   listenfd = socket(AF_INET, SOCK_STREAM, 0);
   memset(&serv_addr, '0', sizeof(serv_addr));
@@ -64,7 +65,54 @@ int main(int argc, char** argv)
     printf("Recd: %d bytes\n", n);
     printf("Received message: %s\n", recvBuff);
 
-    snprintf(sendBuff, sizeof(sendBuff), "Hello this is the bank. We Received your message: \"%s\"\n", recvBuff);
+    vector<string> sections;
+    stringstream ss(recvBuff);
+    string split;
+
+    while(getline(ss,split,'.'))
+    {
+      sections.push_back(split);
+    }
+
+    for (unsigned int i=0;i<sections.size();i++){
+      cout << sections[i] << endl;
+    }
+
+    string username = sections[0];
+    string output;
+
+    if (sections[1] == "Balance")
+    {
+      output = "Your balance is ";
+    }
+    else if (sections[1] == "Withdraw"){
+      int amount = atoi(sections[2].c_str());
+      if (amount > balances[username])
+      {
+        output = "Insufficient funds. Your balance is ";
+      }
+      else
+      {
+        balances[username] -= amount;
+        output = "Withdraw successful. Your balance is ";
+      }
+    }
+    else if (sections[1] == "Transfer")
+    {
+      int amount = atoi(sections[2].c_str());
+      if(amount > balances[username])
+      {
+        output = "Insufficient funds. Your balance is ";
+      }
+      else
+      {
+        balances[username] -= amount;
+        balances[sections[3]] += amount;
+        output = "Transfer successful. Your balance is ";
+      }
+    }
+
+    snprintf(sendBuff, sizeof(sendBuff), "%s%d\n", output.c_str(), balances[username]);
     write(connfd, sendBuff, strlen(sendBuff));
 
     close(connfd);
