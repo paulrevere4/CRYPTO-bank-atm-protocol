@@ -77,14 +77,7 @@ int main(int argc, char** argv)
     string output;
 
     string username = sections[0];
-    bool validUsername = false;
-    for (map<string, int>::iterator itr=balances.begin();itr!=balances.end();itr++)
-    {
-      if (itr->first == username)
-      {
-        validUsername = true;
-      }
-    }
+    bool validUsername = (balances.find(username) != balances.end());
 
     if (!validUsername)
     {
@@ -142,19 +135,16 @@ int main(int argc, char** argv)
       else
       {
         string transfer_to = sections[3];
-        map<string, int>::iterator itr2;
-        bool found_transfer = false;
-        for (map<string, int>::iterator itr2=balances.begin();itr2!=balances.end();itr2++)
+        bool found_transfer = (balances.find(transfer_to) != balances.end());
+        
+        if (found_transfer)
         {
-          if (itr2->first == transfer_to)
-          {
-            balances[username] -= amount;
-            balances[transfer_to] += amount;
-            output = "Transfer successful. Your balance is ";
-            found_transfer = true;
-          }
+          balances[username] -= amount;
+          balances[transfer_to] += amount;
+          output = "Transfer successful. Your balance is ";
         }
-        if (!found_transfer)
+        
+        else
         {
           output = "Unable to find target account. Please try again.\nYour balance is ";
         }
@@ -169,7 +159,6 @@ int main(int argc, char** argv)
     write(connfd, sendBuff, strlen(sendBuff));
 
     close(connfd);
-    sleep(1);
   }
 
 
