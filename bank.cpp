@@ -113,11 +113,47 @@ int main(int argc, char** argv)
         }
         else
         {
-          balances[username] += amount;
-          cout << "Deposit successful. " << username << " now has a balance of " << balances[username] << endl;
+          if (amount.size() > 10)
+          {
+            cout << "ERROR: Maximum account balance is 2000000000" << endl;
+          }
+          else if (amount > "2000000000")
+          {
+            cout << "ERROR: Maximum account balance is 2000000000" << endl;
+          }
+          else
+          {
+            int deposit = atoi(amount.c_str());
+            if (deposit == 0)
+            {
+              cout << "ERROR: The amount entered must be a positive integer" << endl;
+            }
+            else
+            {
+              if (balances[username] + deposit > 2000000000)
+              {
+                cout << "ERROR: Maximum account balance is 2000000000" << endl;
+              }
+              else
+              {
+                balances[username] += deposit;
+                cout << "Deposit successful. " << username << " now has a balance of " << balances[username] << endl;
+              }
+            }
+          }
         }
       }
     }
+    
+    else if (command == "Exit")
+		{
+			
+			string leftover;
+			getline(cin, leftover);
+			
+			cout << "Thank you for visiting" << endl;
+			break;
+		}
 
     else
     {
