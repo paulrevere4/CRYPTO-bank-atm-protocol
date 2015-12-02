@@ -57,7 +57,76 @@ int main(int argc, char** argv)
 
   while(1)
   {
-    cout << "listening..." << endl;
+
+    cout << "----------------------------" << endl;
+    cout << "Enter one of the following:" << endl;
+    cout << "Balance <username>" << endl;
+    cout << "Deposit <username> <amount>" << endl;
+    cout << "Exit" << endl;
+    cout << "----------------------------" << endl;
+
+    string command, username, amount;
+    cin >> command;
+
+    if (command == "Balance")
+    {
+
+      cin >> username;
+
+      string leftover;
+      getline(cin, leftover);
+
+      if (balances.find(username) == balances.end())
+      {
+        cout << "ERROR: Invalid user" << endl;
+      }
+      else
+      {
+        cout << username << " has a balance of " << balances[username] << endl;
+      }
+
+    }
+
+    else if (command == "Deposit")
+    {
+      cin >> username >> amount;
+      string leftover;
+      getline(cin, leftover);
+
+      if (balances.find(username) == balances.end())
+      {
+        cout << "ERROR: Invalid user" << endl;
+      }
+      else
+      {
+        bool integer = true;
+        for (unsigned int i=0;i<amount.size();i++)
+        {
+          if (!isdigit(amount[i]))
+          {
+            integer = false;
+          }
+        }
+        if (!integer)
+        {
+          cout << "ERROR: The amount entered must be a positive integer" << endl;
+        }
+        else
+        {
+          balances[username] += amount;
+          cout << "Deposit successful. " << username << " now has a balance of " << balances[username] << endl;
+        }
+      }
+    }
+
+    else
+    {
+      string leftover;
+      getline(cin, leftover);
+      cout << "ERROR: Invalid command" << endl;
+    }
+
+    /*cout << "listening..." << endl;
     connfd = accept(listenfd, (struct sockaddr*)NULL, NULL);
 
     bzero(recvBuff,1024);
@@ -81,16 +150,7 @@ int main(int argc, char** argv)
 
     if (!validUsername)
     {
-      cout << "Your username has been compromised. Aborting session in 5" << endl;
-      sleep(1);
-      cout << "4" << endl;
-      sleep(1);
-      cout << "3" << endl;
-      sleep(1);
-      cout << "2" << endl;
-      sleep(1);
-      cout << "1" << endl;
-      sleep(1);
+      cout << "Your username has been compromised. Aborting session" << endl;
       break;
     }
     else if (sections[1] == "Balance")
@@ -119,8 +179,8 @@ int main(int argc, char** argv)
     }
     else if (sections[1] == "Transfer")
     {
-      int amount = atoi(sections[3].c_str());
-      if (amount > 10000 || sections[3].size() > 9)
+      int amount = atoi(sections[2].c_str());
+      if (amount > 10000 || sections[2].size() > 9)
       {
         output = "You may transfer a maximum of $10,000 per transaction. Your balance is ";
       }
@@ -134,7 +194,7 @@ int main(int argc, char** argv)
       }
       else
       {
-        string transfer_to = sections[2];
+        string transfer_to = sections[3];
         bool found_transfer = (balances.find(transfer_to) != balances.end());
         
         if (found_transfer)
@@ -158,7 +218,8 @@ int main(int argc, char** argv)
     snprintf(sendBuff, sizeof(sendBuff), "%s%d\n", output.c_str(), balances[username]);
     write(connfd, sendBuff, strlen(sendBuff));
 
-    close(connfd);
+    close(connfd);*/
+
   }
 
 
