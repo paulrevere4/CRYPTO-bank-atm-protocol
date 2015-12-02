@@ -186,23 +186,72 @@ int main(int argc, char** argv)
     				}
     
     				printf("%s\n",buffer);
-					//cout << "Printing " << username << "'s balance" << endl;
+					cout << "Printing " << username << "'s balance" << endl;
 				}
 
 				if (command == "Withdraw")
 				{
-					int amount;
+					string amount;
 					cin >> amount;
+					
+					bzero(buffer,256);
+					string msg = username + "Withdraw" + amount;
+					int i;
+					for (i = 0; i < msg.size(); i++)
+					{
+						buffer[i] = msg[i];
+					}
+					msg[i] = '\0';
+					n = write(sockfd,buffer,strlen(buffer));
+    
+    				if (n < 0) 
+    				{
+         				perror("ERROR writing to socket");
+    				}
+    
+    				bzero(buffer,256);
+    				n = read(sockfd,buffer,255);
+    
+    				if (n < 0)
+    				{
+         				perror("ERROR reading from socket");
+    				}
+    
+    				printf("%s\n",buffer);
 					cout << "Withdrawing " << amount << " dollars from " << username << "'s account" << endl;
 				}
 
 				if (command == "Transfer")
 				{
-					int amount;
+					string amount;
 					string recipient;
 					cin >> amount >> recipient;
 					if (pins.find(recipient) != pins.end())
 					{
+						bzero(buffer,256);
+						string msg = username + "Transfer" + amount + recipient;
+						int i;
+						for (i = 0; i < msg.size(); i++)
+						{
+							buffer[i] = msg[i];
+						}
+						msg[i] = '\0';
+						n = write(sockfd,buffer,strlen(buffer));
+    
+    					if (n < 0) 
+    					{
+         					perror("ERROR writing to socket");
+    					}
+    
+    					bzero(buffer,256);
+    					n = read(sockfd,buffer,255);
+    
+    					if (n < 0)
+    					{
+         					perror("ERROR reading from socket");
+    					}
+    
+    					printf("%s\n",buffer);
 						cout << "Transferring " << amount << " dollars from " << username << " to " << recipient << endl;
 					}
 					else
