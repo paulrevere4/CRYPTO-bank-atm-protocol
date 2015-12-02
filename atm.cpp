@@ -62,6 +62,7 @@ int main(int argc, char** argv)
 
 	while (true)
 	{
+		
 		cout << "----------------------------" << endl;
 		cout << "Enter one of the following:" << endl;
 		cout << "Login <username>" << endl;
@@ -71,7 +72,7 @@ int main(int argc, char** argv)
 		cout << "Logout" << endl;
 		cout << "Exit" << endl;
 		cout << "----------------------------" << endl;
-
+		
 		string command;
 		cin >> command;
 		
@@ -80,6 +81,9 @@ int main(int argc, char** argv)
 		if (command == "Login")
 		{
 			cin >> username;
+			
+			string leftover;
+			getline(cin, leftover);
 
 			if (pins.find(username) == pins.end())
 			{
@@ -104,6 +108,9 @@ int main(int argc, char** argv)
 		
 		else if (command == "Logout")
 		{
+			string leftover;
+			getline(cin, leftover);
+			
 			if (loggedIn)
 			{
 				cout << "Logging out " << username << endl;
@@ -118,6 +125,10 @@ int main(int argc, char** argv)
 
 		else if (command == "Exit")
 		{
+			
+			string leftover;
+			getline(cin, leftover);
+			
 			cout << "Thank you for visiting" << endl;
 			break;
 		}
@@ -163,6 +174,9 @@ int main(int argc, char** argv)
 				if (command == "Balance")
 				{
 					
+					string leftover;
+					getline(cin, leftover);
+					
 					bzero(buffer,256);
 					string msg = username + "Balance";
 					strcpy(buffer,msg.c_str());
@@ -189,10 +203,13 @@ int main(int argc, char** argv)
 					cout << "Printing " << username << "'s balance" << endl;
 				}
 
-				if (command == "Withdraw")
+				else if (command == "Withdraw")
 				{
 					string amount;
 					cin >> amount;
+					
+					string leftover;
+					getline(cin, leftover);
 					
 					bzero(buffer,256);
 					string msg = username + "Withdraw" + amount;
@@ -216,11 +233,15 @@ int main(int argc, char** argv)
 					cout << "Withdrawing " << amount << " dollars from " << username << "'s account" << endl;
 				}
 
-				if (command == "Transfer")
+				else if (command == "Transfer")
 				{
 					string amount;
 					string recipient;
 					cin >> amount >> recipient;
+					
+					string leftover;
+					getline(cin, leftover);
+					
 					if (pins.find(recipient) != pins.end())
 					{
 						bzero(buffer,256);
@@ -248,6 +269,14 @@ int main(int argc, char** argv)
 					{
 						cout << "ERROR: Invalid user" << endl;
 					}
+				}
+				
+				else {
+					
+					string leftover;
+					getline(cin, leftover);
+					
+					cout << "ERROR: Invalid command" << endl;
 				}
 
 				close(sockfd);
