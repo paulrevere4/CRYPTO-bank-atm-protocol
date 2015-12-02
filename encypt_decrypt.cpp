@@ -2,6 +2,7 @@
 
 // DEPENDS ON libcrypto++-dev 
 // apt-get install libcrypto++-dev 
+// compile with: g++ encypt_decrypt.cpp -lcryptopp
 
 #include <iostream>
 
