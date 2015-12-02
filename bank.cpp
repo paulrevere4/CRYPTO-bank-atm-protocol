@@ -57,7 +57,112 @@ int main(int argc, char** argv)
 
   while(1)
   {
-    cout << "listening..." << endl;
+
+    cout << "----------------------------" << endl;
+    cout << "Enter one of the following:" << endl;
+    cout << "Balance <username>" << endl;
+    cout << "Deposit <username> <amount>" << endl;
+    cout << "Exit" << endl;
+    cout << "----------------------------" << endl;
+
+    string command, username, amount;
+    cin >> command;
+
+    if (command == "Balance")
+    {
+
+      cin >> username;
+
+      string leftover;
+      getline(cin, leftover);
+
+      if (balances.find(username) == balances.end())
+      {
+        cout << "ERROR: Invalid user" << endl;
+      }
+      else
+      {
+        cout << username << " has a balance of " << balances[username] << endl;
+      }
+
+    }
+
+    else if (command == "Deposit")
+    {
+      cin >> username >> amount;
+      string leftover;
+      getline(cin, leftover);
+
+      if (balances.find(username) == balances.end())
+      {
+        cout << "ERROR: Invalid user" << endl;
+      }
+      else
+      {
+        bool integer = true;
+        for (unsigned int i=0;i<amount.size();i++)
+        {
+          if (!isdigit(amount[i]))
+          {
+            integer = false;
+          }
+        }
+        if (!integer)
+        {
+          cout << "ERROR: The amount entered must be a positive integer" << endl;
+        }
+        else
+        {
+          if (amount.size() > 10)
+          {
+            cout << "ERROR: Maximum account balance is 2000000000" << endl;
+          }
+          else if (amount > "2000000000")
+          {
+            cout << "ERROR: Maximum account balance is 2000000000" << endl;
+          }
+          else
+          {
+            int deposit = atoi(amount.c_str());
+            if (deposit == 0)
+            {
+              cout << "ERROR: The amount entered must be a positive integer" << endl;
+            }
+            else
+            {
+              if (balances[username] + deposit > 2000000000)
+              {
+                cout << "ERROR: Maximum account balance is 2000000000" << endl;
+              }
+              else
+              {
+                balances[username] += deposit;
+                cout << "Deposit successful. " << username << " now has a balance of " << balances[username] << endl;
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    else if (command == "Exit")
+		{
+			
+			string leftover;
+			getline(cin, leftover);
+			
+			cout << "Thank you for visiting" << endl;
+			break;
+		}
+
+    else
+    {
+      string leftover;
+      getline(cin, leftover);
+      cout << "ERROR: Invalid command" << endl;
+    }
+
+    /*cout << "listening..." << endl;
     connfd = accept(listenfd, (struct sockaddr*)NULL, NULL);
 
     bzero(recvBuff,1024);
@@ -81,16 +186,7 @@ int main(int argc, char** argv)
 
     if (!validUsername)
     {
-      cout << "Your username has been compromised. Aborting session in 5" << endl;
-      sleep(1);
-      cout << "4" << endl;
-      sleep(1);
-      cout << "3" << endl;
-      sleep(1);
-      cout << "2" << endl;
-      sleep(1);
-      cout << "1" << endl;
-      sleep(1);
+      cout << "Your username has been compromised. Aborting session" << endl;
       break;
     }
     else if (sections[1] == "Balance")
@@ -158,7 +254,8 @@ int main(int argc, char** argv)
     snprintf(sendBuff, sizeof(sendBuff), "%s%d\n", output.c_str(), balances[username]);
     write(connfd, sendBuff, strlen(sendBuff));
 
-    close(connfd);
+    close(connfd);*/
+
   }
 
 
