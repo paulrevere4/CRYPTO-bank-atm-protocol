@@ -76,7 +76,7 @@ int main(int argc, char** argv)
 
     string output;
 
-    string username = "Charlie";
+    string username = sections[0];
     bool validUsername = false;
     for (map<string, int>::iterator itr=balances.begin();itr!=balances.end();itr++)
     {
