@@ -59,6 +59,7 @@ int main(int argc, char** argv)
     cout << "listening..." << endl;
     connfd = accept(listenfd, (struct sockaddr*)NULL, NULL);
 
+    bzero(recvBuff,1024);
     n = recv(connfd, &recvBuff, 1023, 0);
     printf("Recd: %d bytes\n", n);
     printf("Received message: %s\n", recvBuff);
