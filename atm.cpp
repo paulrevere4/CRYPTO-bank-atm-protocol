@@ -489,9 +489,9 @@ int main(int argc, char** argv)
 								n = write(sockfd,buffer,strlen(buffer));
 
 								bzero(buffer,1024);
-			    				n = read(sockfd,buffer,1023);
+			    				n = read(sockfd,buffer,292);
 
-			    				StringSource ss((unsigned char*)buffer, 1023, true);
+			    				StringSource ss((unsigned char*)buffer, 292, true);
 
 			    				RSA::PublicKey publicKey;
 								publicKey.Load(ss);
