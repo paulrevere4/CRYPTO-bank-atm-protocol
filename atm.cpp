@@ -253,12 +253,7 @@ int main(int argc, char** argv)
 					}
 
     				cout << res_message << endl;
-    
-    				if (n < 0) 
-    				{
-         				perror("ERROR writing to socket");
-    				}
-    				
+
     				close(sockfd);
 				}
 
@@ -406,11 +401,6 @@ int main(int argc, char** argv)
 							}
 
 		    				cout << res_message << endl;
-		    
-		    				if (n < 0) 
-		    				{
-		         				perror("ERROR writing to socket");
-		    				}
 
 	    				//==========================================================
     				
@@ -548,7 +538,7 @@ int main(int argc, char** argv)
 								write(sockfd, buffer, spki.size());
 
 								bzero(buffer,1024);
-								n = recv(sockfd, &buffer, 1023, 0);
+								n = recv(sockfd, &buffer, 256, 0);
 
 								string enc_res = "";
 								for ( unsigned int i = 0; i < 256; i++ ) {
@@ -566,12 +556,6 @@ int main(int argc, char** argv)
 								}
 
 			    				cout << res_message << endl;
-			    
-			    				if (n < 0) 
-			    				{
-			         				perror("ERROR writing to socket");
-			    				}
-				    			
 	    					
 	    						close(sockfd);
 							}
