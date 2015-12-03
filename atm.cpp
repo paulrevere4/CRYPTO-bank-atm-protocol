@@ -544,7 +544,7 @@ int main(int argc, char** argv)
 								for ( unsigned int i = 0; i < 256; i++ ) {
 									enc_res += buffer[i];
 								}
-
+ 
 								string res_plaintext = decrypt(privateKeyAtm, enc_res);
 
 								string res_message = get_message_wout_hash(res_plaintext);
