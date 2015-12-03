@@ -182,8 +182,8 @@ int main(int argc, char** argv)
     				// cout << "public key: " << buffer << endl;
     				StringSource ss((unsigned char*)buffer, 1023, true);
 
-    				RSA::PublicKey publicKey;
-					publicKey.Load(ss);
+    				RSA::PublicKey publicKeyBank;
+					publicKeyBank.Load(ss);
 
 					// string spki;
 					// StringSink sk(spki);
@@ -191,11 +191,11 @@ int main(int argc, char** argv)
 					// printf("\n\n");
 
 					// // Use Save to DER encode the Subject Public Key Info (SPKI)
-					// publicKey.Save(sk);
-					// cout << "publicKeyString: \n" << spki << endl;
+					// publicKeyBank.Save(sk);
+					// cout << "publicKeyBankString: \n" << spki << endl;
 
 					string msg = username + ".Balance";
-					string enc_msg = hash_and_encrypt(publicKey, msg);
+					string enc_msg = hash_and_encrypt(publicKeyBank, msg);
 					// cout << "\n==================================\n" << endl;
 					// cout << enc_msg << endl;
 					bzero(buffer,1024);
@@ -208,9 +208,57 @@ int main(int argc, char** argv)
          				perror("ERROR writing to socket");
     				}
 
+
+    				//================================
+
     				bzero(buffer,1024);
     				n = read(sockfd,buffer,1023);
-    				printf("%s\n",buffer);
+    				string command(buffer);
+    				if ( command != "publickeyrequest")
+    				{
+    					cout << "ERROR NEED PUBLIC KEY REQUEST" << endl;
+    				} 
+
+    				pair<RSA::PrivateKey, RSA::PublicKey>keys = getNewKeys();
+					RSA::PrivateKey privateKeyAtm = keys.first;
+					RSA::PublicKey publicKeyAtm = keys.second;
+
+					string spki;
+					StringSink ssink(spki);
+
+					// Use Save to DER encode the Subject Public Key Info (SPKI)
+					publicKeyAtm.Save(ssink);
+					// std::cout << "publicKeyString: \n" << spki << endl;
+
+					// snprintf(sendBuff, sizeof(sendBuff), "%s\n", spki.data());
+					bzero(buffer,1024);
+					for ( unsigned int i = 0; i < spki.size(); i++ ) {
+						buffer[i] = spki.data()[i];
+					}
+
+					write(sockfd, buffer, spki.size());
+
+					bzero(buffer,1024);
+					n = recv(sockfd, &buffer, 1023, 0);
+					printf("encrypted data:\n");
+					write(1, buffer, 256);
+					string enc_res = "";
+					for ( unsigned int i = 0; i < 256; i++ ) {
+					enc_res += buffer[i];
+					}
+					// printf("\n");
+					string res_plaintext = decrypt(privateKeyAtm, enc_res);
+					// printf("\n");
+
+					string res_message = get_message_wout_hash(res_plaintext);
+
+					if ( !verify_message(res_plaintext) )
+					{
+						cout << "HACKER!" << endl;
+						cout << "DIE DIE DIE DIE!" << endl;
+					}
+
+    				cout << res_message << endl;
 
 
 
@@ -350,9 +398,56 @@ int main(int argc, char** argv)
 		         				perror("ERROR writing to socket");
 		    				}
 
-		    				bzero(buffer,1024);
+		    				//================================
+
+				    		bzero(buffer,1024);
 		    				n = read(sockfd,buffer,1023);
-		    				printf("%s\n",buffer);
+		    				string command(buffer);
+		    				if ( command != "publickeyrequest")
+		    				{
+		    					cout << "ERROR NEED PUBLIC KEY REQUEST" << endl;
+		    				} 
+
+		    				pair<RSA::PrivateKey, RSA::PublicKey>keys = getNewKeys();
+							RSA::PrivateKey privateKeyAtm = keys.first;
+							RSA::PublicKey publicKeyAtm = keys.second;
+
+							string spki;
+							StringSink ssink(spki);
+
+							// Use Save to DER encode the Subject Public Key Info (SPKI)
+							publicKeyAtm.Save(ssink);
+							// std::cout << "publicKeyString: \n" << spki << endl;
+
+							// snprintf(sendBuff, sizeof(sendBuff), "%s\n", spki.data());
+							bzero(buffer,1024);
+							for ( unsigned int i = 0; i < spki.size(); i++ ) {
+								buffer[i] = spki.data()[i];
+							}
+
+							write(sockfd, buffer, spki.size());
+
+							bzero(buffer,1024);
+							n = recv(sockfd, &buffer, 1023, 0);
+							printf("encrypted data:\n");
+							write(1, buffer, 256);
+							string enc_res = "";
+							for ( unsigned int i = 0; i < 256; i++ ) {
+							enc_res += buffer[i];
+							}
+							// printf("\n");
+							string res_plaintext = decrypt(privateKeyAtm, enc_res);
+							// printf("\n");
+
+							string res_message = get_message_wout_hash(res_plaintext);
+
+							if ( !verify_message(res_plaintext) )
+							{
+								cout << "HACKER!" << endl;
+								cout << "DIE DIE DIE DIE!" << endl;
+							}
+
+		    				cout << res_message << endl;
 
 
 
@@ -490,14 +585,58 @@ int main(int argc, char** argv)
 			         				perror("ERROR writing to socket");
 			    				}
 
-			    				bzero(buffer,1024);
+			    				//================================
+
+					    		bzero(buffer,1024);
 			    				n = read(sockfd,buffer,1023);
-			    				printf("%s\n",buffer);
+			    				string command(buffer);
+			    				if ( command != "publickeyrequest")
+			    				{
+			    					cout << "ERROR NEED PUBLIC KEY REQUEST" << endl;
+			    				} 
 
+			    				pair<RSA::PrivateKey, RSA::PublicKey>keys = getNewKeys();
+								RSA::PrivateKey privateKeyAtm = keys.first;
+								RSA::PublicKey publicKeyAtm = keys.second;
 
+								string spki;
+								StringSink ssink(spki);
 
+								// Use Save to DER encode the Subject Public Key Info (SPKI)
+								publicKeyAtm.Save(ssink);
+								// std::cout << "publicKeyString: \n" << spki << endl;
 
-								
+								// snprintf(sendBuff, sizeof(sendBuff), "%s\n", spki.data());
+								bzero(buffer,1024);
+								for ( unsigned int i = 0; i < spki.size(); i++ ) {
+									buffer[i] = spki.data()[i];
+								}
+
+								write(sockfd, buffer, spki.size());
+
+								bzero(buffer,1024);
+								n = recv(sockfd, &buffer, 1023, 0);
+								printf("encrypted data:\n");
+								write(1, buffer, 256);
+								string enc_res = "";
+								for ( unsigned int i = 0; i < 256; i++ ) {
+								enc_res += buffer[i];
+								}
+								// printf("\n");
+								string res_plaintext = decrypt(privateKeyAtm, enc_res);
+								// printf("\n");
+
+								string res_message = get_message_wout_hash(res_plaintext);
+
+								if ( !verify_message(res_plaintext) )
+								{
+									cout << "HACKER!" << endl;
+									cout << "DIE DIE DIE DIE!" << endl;
+								}
+
+			    				cout << res_message << endl;
+
+									
 								// bzero(buffer,1024);
 								// string msg = username + ".Balance";
 								// strcpy(buffer,msg.c_str());

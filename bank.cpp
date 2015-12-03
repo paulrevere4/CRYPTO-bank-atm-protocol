@@ -129,16 +129,11 @@ void* listenPort(void* arguments)
         cout << "DIE DIE DIE DIE!" << endl;
       }
 
-      //send public key request
-      // bzero(sendBuff,1024);
-      // string request = "publickeyrequest";
-      // strcpy(sendBuff,request.c_str());
-      // write(connfd, sendBuff, strlen(sendBuff));
-
-      // bzero(recvBuff,1024);
-      // n = read(sockfd,recvBuff,1023);
-
       //========================================
+
+      
+
+
 
 
 
@@ -255,8 +250,33 @@ void* listenPort(void* arguments)
         output = "Something went wrong. Please try again.\nYour balance is ";
       }
 
-      snprintf(sendBuff, sizeof(sendBuff), "%s%d\n", output.c_str(), (*balances)[username]);
+      // send public key request
+      bzero(sendBuff,1024);
+      string request = "publickeyrequest";
+      strcpy(sendBuff,request.c_str());
       write(connfd, sendBuff, strlen(sendBuff));
+
+
+      bzero(recvBuff,1024);
+      n = read(connfd,recvBuff,1023);
+
+      StringSource ssource((unsigned char*)recvBuff, 1023, true);
+
+      RSA::PublicKey publicKeyAtm;
+      publicKeyAtm.Load(ssource);
+
+      snprintf(sendBuff, sizeof(sendBuff), "%s%d\n", output.c_str(), (*balances)[username]);
+      string res_plaintext(sendBuff);
+
+      string enc_res = hash_and_encrypt(publicKeyAtm, res_plaintext);
+      bzero(sendBuff,1024);
+      for ( unsigned int i = 0; i < enc_res.size(); i++ ) {
+          sendBuff[i] = enc_res[i];
+      }
+      write(connfd, sendBuff, enc_res.size());
+
+      // snprintf(sendBuff, sizeof(sendBuff), "%s%d\n", output.c_str(), (*balances)[username]);
+      // write(connfd, sendBuff, strlen(sendBuff));
       
       pthread_mutex_unlock(args->lock);
 
