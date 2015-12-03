@@ -26,7 +26,7 @@ int main(int argc, char** argv)
   const int LISTEN_PORT = atoi(argv[1]);
   const int SEND_PORT = atoi(argv[2]);
 
-	cout << "Hello world! I am a proxy!" << endl;
+  cout << "Hello world! I am a proxy!" << endl;
   cout << "I will listen on port " << LISTEN_PORT << endl;
   cout << "I send to port " << SEND_PORT << endl;
 
@@ -88,27 +88,109 @@ int main(int argc, char** argv)
 
     bzero(recvBuff,1024);
     bzero(sendBuff,1024);
-
     n = recv(connfd, &recvBuff, 1023, 0);
     printf("Recd: %d bytes from ATM\n", n);
-    printf("Received message from ATM: %s\n", recvBuff);
+    printf("Received message from ATM: \n");
 
-    snprintf(sendBuff, sizeof(sendBuff), "%s", recvBuff);
-    n = write(sockfd, sendBuff, strlen(sendBuff));
+    // snprintf(sendBuff, sizeof(sendBuff), "%s", recvBuff);
+    for ( int i = 0; i < n; i++ )
+    {
+      sendBuff[i] = recvBuff[i];
+    }
+    n = write(sockfd, sendBuff, n);
     printf("Sent: %d bytes to BANK\n", n);
 
+    //============================================
+
     bzero(recvBuff,1024);
+    bzero(sendBuff,1024);
     n = read(sockfd, recvBuff, 1023);
     printf("Read: %d bytes from BANK\n", n);
-    printf("Received message from BANK: %s\n", recvBuff);
+    printf("Received message from BANK: \n");
+    // write(1, recvBuff, n);
+    // printf("\n");
 
-    snprintf(sendBuff, sizeof(sendBuff), "%s", recvBuff);
-    write(connfd, sendBuff, strlen(sendBuff));
+    // snprintf(sendBuff, sizeof(sendBuff), "%s", recvBuff);
+    for ( int i = 0; i < n; i++ )
+    {
+      sendBuff[i] = recvBuff[i];
+    }
+    n = write(connfd, sendBuff, n);
+    printf("Sent: %d bytes to ATM\n", n);
+
+    //============================================
+
+    bzero(recvBuff,1024);
+    bzero(sendBuff,1024);
+    n = recv(connfd, &recvBuff, 1023, 0);
+    printf("Recd: %d bytes from ATM\n", n);
+    printf("Received message from ATM: \n");
+
+    // snprintf(sendBuff, sizeof(sendBuff), "%s", recvBuff);
+    for ( int i = 0; i < n; i++ )
+    {
+      sendBuff[i] = recvBuff[i];
+    }
+    n = write(sockfd, sendBuff, n);
+    printf("Sent: %d bytes to BANK\n", n);
+
+    //============================================
+
+    bzero(recvBuff,1024);
+    bzero(sendBuff,1024);
+    n = read(sockfd, recvBuff, 1023);
+    printf("Read: %d bytes from BANK\n", n);
+    printf("Received message from BANK: \n");
+    // write(1, recvBuff, n);
+    // printf("\n");
+
+    // snprintf(sendBuff, sizeof(sendBuff), "%s", recvBuff);
+    for ( int i = 0; i < n; i++ )
+    {
+      sendBuff[i] = recvBuff[i];
+    }
+    n = write(connfd, sendBuff, n);
+    printf("Sent: %d bytes to ATM\n", n);
+
+    //============================================
+
+    bzero(recvBuff,1024);
+    bzero(sendBuff,1024);
+    n = recv(connfd, &recvBuff, 1023, 0);
+    printf("Recd: %d bytes from ATM\n", n);
+    printf("Received message from ATM: \n");
+
+    // snprintf(sendBuff, sizeof(sendBuff), "%s", recvBuff);
+    for ( int i = 0; i < n; i++ )
+    {
+      sendBuff[i] = recvBuff[i];
+    }
+    n = write(sockfd, sendBuff, n);
+    printf("Sent: %d bytes to BANK\n", n);
+
+    //============================================
+
+    bzero(recvBuff,1024);
+    bzero(sendBuff,1024);
+    n = read(sockfd, recvBuff, 1023);
+    printf("Read: %d bytes from BANK\n", n);
+    printf("Received message from BANK: \n");
+    // write(1, recvBuff, n);
+    // printf("\n");
+
+    // snprintf(sendBuff, sizeof(sendBuff), "%s", recvBuff);
+    for ( int i = 0; i < n; i++ )
+    {
+      sendBuff[i] = recvBuff[i];
+    }
+    n = write(connfd, sendBuff, n);
+    printf("Sent: %d bytes to ATM\n", n);
+
 
     close(connfd);
     sleep(1);
   }
 
 
-	return 0;
+  return 0;
 }

@@ -1,4 +1,9 @@
 #include <iostream>
+#include <map>
+#include <sstream>
+#include <vector>
+#include <utility>
+
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -9,11 +14,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <time.h>
-#include <map>
-#include <sstream>
-#include <vector>
 #include <pthread.h>
-#include <utility>
 
 #include <crypto++/rsa.h>
 #include <crypto++/osrng.h>
@@ -21,8 +22,6 @@
 #include <crypto++/files.h>
 
 #include "encrypt_decrypt.h"
-
-#define BUFFER_SIZE = 1024
 
 using namespace CryptoPP;
 using namespace std;
@@ -32,22 +31,6 @@ typedef struct arg {
 	map<string, int> *bal;
 	pthread_mutex_t* lock;
 } arg;
-
-// pair<RSA::PrivateKey, RSA::PublicKey>
-// getNewKeys();
-
-// string
-// hash_and_encrypt(RSA::PublicKey publicKey, string plaintext);
-
-// string
-// decrypt(RSA::PrivateKey privateKey, string ciphertext);
-
-// string
-// get_message_wout_hash(string message_w_hash);
-
-// bool
-// verify_message(string message_w_hash);
-
 
 
 void* listenPort(void* arguments)
@@ -125,18 +108,11 @@ void* listenPort(void* arguments)
 
       if ( !verify_message(plaintext) )
       {
-        cout << "HACKER!" << endl;
-        cout << "DIE DIE DIE DIE!" << endl;
+        cout << "Tampering Detected" << endl;
+        exit(1);
       }
 
       //========================================
-
-      
-
-
-
-
-
 
       // cout << message << endl;
       strcpy(recvBuff, message.c_str());
@@ -282,6 +258,11 @@ void* listenPort(void* arguments)
 
       close(connfd);
 
+    }
+
+    else
+    {
+      cout << "Tampering detected" << endl;
     }
 
   }

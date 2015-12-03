@@ -11,7 +11,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <netdb.h> 
+#include <netdb.h>
 
 #include <crypto++/rsa.h>
 #include <crypto++/osrng.h>
@@ -73,28 +73,38 @@ int main(int argc, char** argv)
 
 		if (command == "Login")
 		{
-			cin >> username;
-			
-			string leftover;
-			getline(cin, leftover);
 
-			if (pins.find(username) == pins.end())
+			if (loggedIn)
 			{
-				cout << "ERROR: Invalid user" << endl;
+				cout << "ERROR: " << username << " is already logged in" << endl;
 			}
+
 			else
 			{
-				cout << "Enter your PIN: ";
-				string pin;
-				cin >> pin;
-				if (pins[username] == pin)
+
+				cin >> username;
+				
+				string leftover;
+				getline(cin, leftover);
+
+				if (pins.find(username) == pins.end())
 				{
-					cout << "Logging in " << username << endl;
-					loggedIn = true;
+					cout << "ERROR: Invalid user" << endl;
 				}
 				else
 				{
-					cout << "ERROR: Incorrect PIN" << endl;
+					cout << "Enter your PIN: ";
+					string pin;
+					cin >> pin;
+					if (pins[username] == pin)
+					{
+						cout << "Logging in " << username << endl;
+						loggedIn = true;
+					}
+					else
+					{
+						cout << "ERROR: Incorrect PIN" << endl;
+					}
 				}
 			}
 		}
@@ -175,6 +185,7 @@ int main(int argc, char** argv)
 					strcpy(buffer,request.c_str());
 					// printf("buffer to send: %s\n", buffer);
 					n = write(sockfd,buffer,strlen(buffer));
+					// sleep(2);
 
 					bzero(buffer,1024);
     				n = read(sockfd,buffer,1023);
@@ -208,15 +219,15 @@ int main(int argc, char** argv)
          				perror("ERROR writing to socket");
     				}
 
-
     				//================================
-
+    				// sleep(2);
     				bzero(buffer,1024);
     				n = read(sockfd,buffer,1023);
     				string command(buffer);
     				if ( command != "publickeyrequest")
     				{
-    					cout << "ERROR NEED PUBLIC KEY REQUEST" << endl;
+    					cout << "Tampering detected" << endl;
+        				exit(1);
     				} 
 
     				pair<RSA::PrivateKey, RSA::PublicKey>keys = getNewKeys();
@@ -239,9 +250,10 @@ int main(int argc, char** argv)
 					write(sockfd, buffer, spki.size());
 
 					bzero(buffer,1024);
+					// sleep(2);
 					n = recv(sockfd, &buffer, 1023, 0);
-					printf("encrypted data:\n");
-					write(1, buffer, 256);
+					// printf("encrypted data:\n");
+					// write(1, buffer, 256);
 					string enc_res = "";
 					for ( unsigned int i = 0; i < 256; i++ ) {
 					enc_res += buffer[i];
@@ -252,10 +264,11 @@ int main(int argc, char** argv)
 
 					string res_message = get_message_wout_hash(res_plaintext);
 
+
 					if ( !verify_message(res_plaintext) )
 					{
-						cout << "HACKER!" << endl;
-						cout << "DIE DIE DIE DIE!" << endl;
+						cout << "Tampering detected" << endl;
+        				exit(1);
 					}
 
     				cout << res_message << endl;
@@ -276,6 +289,8 @@ int main(int argc, char** argv)
     				{
          				perror("ERROR writing to socket");
     				}
+
+    				
     
     	// 			bzero(buffer,256);
     	// 			n = read(sockfd,buffer,255);
@@ -405,7 +420,8 @@ int main(int argc, char** argv)
 		    				string command(buffer);
 		    				if ( command != "publickeyrequest")
 		    				{
-		    					cout << "ERROR NEED PUBLIC KEY REQUEST" << endl;
+		    					cout << "Tampering detected" << endl;
+        						exit(1);
 		    				} 
 
 		    				pair<RSA::PrivateKey, RSA::PublicKey>keys = getNewKeys();
@@ -429,8 +445,8 @@ int main(int argc, char** argv)
 
 							bzero(buffer,1024);
 							n = recv(sockfd, &buffer, 1023, 0);
-							printf("encrypted data:\n");
-							write(1, buffer, 256);
+							// printf("encrypted data:\n");
+							// write(1, buffer, 256);
 							string enc_res = "";
 							for ( unsigned int i = 0; i < 256; i++ ) {
 							enc_res += buffer[i];
@@ -443,8 +459,8 @@ int main(int argc, char** argv)
 
 							if ( !verify_message(res_plaintext) )
 							{
-								cout << "HACKER!" << endl;
-								cout << "DIE DIE DIE DIE!" << endl;
+								cout << "Tampering detected" << endl;
+        						exit(1);
 							}
 
 		    				cout << res_message << endl;
@@ -466,8 +482,8 @@ int main(int argc, char** argv)
 		         				perror("ERROR writing to socket");
 		    				}
 
-		    				//==========================================================
-									
+	    				//==========================================================
+							
     				
     						close(sockfd);
 						}
@@ -592,7 +608,8 @@ int main(int argc, char** argv)
 			    				string command(buffer);
 			    				if ( command != "publickeyrequest")
 			    				{
-			    					cout << "ERROR NEED PUBLIC KEY REQUEST" << endl;
+			    					cout << "Tampering detected" << endl;
+        							exit(1);
 			    				} 
 
 			    				pair<RSA::PrivateKey, RSA::PublicKey>keys = getNewKeys();
@@ -616,8 +633,8 @@ int main(int argc, char** argv)
 
 								bzero(buffer,1024);
 								n = recv(sockfd, &buffer, 1023, 0);
-								printf("encrypted data:\n");
-								write(1, buffer, 256);
+								// printf("encrypted data:\n");
+								// write(1, buffer, 256);
 								string enc_res = "";
 								for ( unsigned int i = 0; i < 256; i++ ) {
 								enc_res += buffer[i];
@@ -630,8 +647,8 @@ int main(int argc, char** argv)
 
 								if ( !verify_message(res_plaintext) )
 								{
-									cout << "HACKER!" << endl;
-									cout << "DIE DIE DIE DIE!" << endl;
+									cout << "Tampering detected" << endl;
+        							exit(1);
 								}
 
 			    				cout << res_message << endl;
@@ -649,6 +666,7 @@ int main(int argc, char** argv)
 			    				{
 			         				perror("ERROR writing to socket");
 			    				}
+				    			
 	    					
 	    						close(sockfd);
 							}
