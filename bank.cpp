@@ -58,51 +58,38 @@ void* listenPort(void* arguments)
   
   while (1)
   {
-    //cout << "listening..." << endl;
     connfd = accept(listenfd, (struct sockaddr*)NULL, NULL);
 
     bzero(recvBuff,1024);
     n = recv(connfd, &recvBuff, 1023, 0);
-    // printf("Recd: %d bytes\n", n);
-    // printf("Received message: %s\n", recvBuff);
 
     string command(recvBuff); 
 
     if ( command == "publickeyrequest" )
     {
-
-      // cout << "Received request for public key" << endl;
       pair<RSA::PrivateKey, RSA::PublicKey>keys = getNewKeys();
       RSA::PrivateKey privateKey = keys.first;
       RSA::PublicKey publicKey = keys.second;
 
       string spki;
       StringSink ss(spki);
-
-      // Use Save to DER encode the Subject Public Key Info (SPKI)
       publicKey.Save(ss);
-      // std::cout << "publicKeyString: \n" << spki << endl;
 
-      // snprintf(sendBuff, sizeof(sendBuff), "%s\n", spki.data());
       for ( unsigned int i = 0; i < spki.size(); i++ ) {
         sendBuff[i] = spki.data()[i];
       }
-      // write(1, sendBuff, spki.size());
+
       write(connfd, sendBuff, spki.size());
 
-      // printf("WAITING FOR A RESPONSE WITH DATA\n");
-      //connfd = accept(listenfd, (struct sockaddr*)NULL, NULL);
       bzero(recvBuff,1024);
       n = recv(connfd, &recvBuff, 1023, 0);
-      // printf("encrypted data:\n");
-      // write(1, recvBuff, 256);
+
       string enc_msg = "";
       for ( unsigned int i = 0; i < 256; i++ ) {
         enc_msg += recvBuff[i];
       }
-      // printf("\n");
+
       string plaintext = decrypt(privateKey, enc_msg);
-      // printf("\n");
 
       string message = get_message_wout_hash(plaintext);
 
@@ -114,7 +101,6 @@ void* listenPort(void* arguments)
 
       //========================================
 
-      // cout << message << endl;
       strcpy(recvBuff, message.c_str());
       vector<string> sections;
       stringstream sstream(recvBuff);
@@ -226,7 +212,6 @@ void* listenPort(void* arguments)
         output = "Something went wrong. Please try again.\nYour balance is ";
       }
 
-      // send public key request
       bzero(sendBuff,1024);
       string request = "publickeyrequest";
       strcpy(sendBuff,request.c_str());
@@ -250,9 +235,6 @@ void* listenPort(void* arguments)
           sendBuff[i] = enc_res[i];
       }
       write(connfd, sendBuff, enc_res.size());
-
-      // snprintf(sendBuff, sizeof(sendBuff), "%s%d\n", output.c_str(), (*balances)[username]);
-      // write(connfd, sendBuff, strlen(sendBuff));
       
       pthread_mutex_unlock(args->lock);
 
@@ -264,7 +246,6 @@ void* listenPort(void* arguments)
     {
       cout << "Tampering detected" << endl;
     }
-
   }
 }
 
@@ -414,8 +395,6 @@ int main(int argc, char** argv)
       getline(cin, leftover);
       cout << "ERROR: Invalid command" << endl;
     }
-
-    
 
   }
 
