@@ -13,8 +13,12 @@
 #include <crypto++/base64.h>
 #include <crypto++/files.h>
 
+#include "encrypt_decrypt.h"
+
 using namespace CryptoPP;
 using namespace std;
+
+// namespace enc{
 
 pair<RSA::PrivateKey, RSA::PublicKey>
 getNewKeys()
@@ -100,48 +104,63 @@ verify_message(string message_w_hash)
   return string((char *)hashed)+message_wout_hash == message_w_hash;
 }
 
-int main()
-{
+// int main()
+// {
   
 
-  //test function
-  pair<RSA::PrivateKey, RSA::PublicKey> keys = getNewKeys();
+//   //test function
+//   pair<RSA::PrivateKey, RSA::PublicKey> keys = getNewKeys();
 
-  RSA::PrivateKey privateKey = keys.first;
-  RSA::PublicKey publicKey = keys.second;
+//   RSA::PrivateKey privateKey = keys.first;
+//   RSA::PublicKey publicKey = keys.second;
 
-  string plain = "Alice.Transfer.Bob.XXXXXXXXXX";
-  // string plain = "Bob.Balance";
-  cout << "plaintext: " << plain << endl;
+//   string plain = "Alice.Transfer.Bob.XXXXXXXXXX";
+//   // string plain = "Bob.Balance";
+//   cout << "plaintext: " << plain << endl;
 
-  unsigned char hashed[21];
-  hashed[20] = '\0';
-  cout << "SHA_digest_size: " << SHA::DIGESTSIZE << endl;
-  SHA().CalculateDigest(hashed, (byte *)plain.c_str(), plain.length());
+//   unsigned char hashed[21];
+//   hashed[20] = '\0';
+//   cout << "SHA_digest_size: " << SHA::DIGESTSIZE << endl;
+//   SHA().CalculateDigest(hashed, (byte *)plain.c_str(), plain.length());
   
-  printf("hashed plaintext: %s\n", hashed);
-  string hash_and_plaintext = string((char *)hashed) + plain;
-  cout << "hash_and_plaintext: " << hash_and_plaintext << endl;
+//   printf("hashed plaintext: %s\n", hashed);
+//   string hash_and_plaintext = string((char *)hashed) + plain;
+//   cout << "hash_and_plaintext: " << hash_and_plaintext << endl;
 
 
-  //Encryption
-  string ciphertext = hash_and_encrypt(publicKey, plain);
-  cout << "ciphertext: \n" << ciphertext << endl;
-  cout << "ciphertext length: " << ciphertext.length() << endl;
+//   //Encryption
+//   string ciphertext = hash_and_encrypt(publicKey, plain);
+//   cout << "ciphertext: \n" << ciphertext << endl;
+//   cout << "ciphertext length: " << ciphertext.length() << endl;
 
-  // Decryption
-  string decryptedPlaintext = decrypt(privateKey, ciphertext);
-  cout << "recovered text: " << decryptedPlaintext << endl;
-  assert(decryptedPlaintext == hash_and_plaintext);
+//   // Decryption
+//   string decryptedPlaintext = decrypt(privateKey, ciphertext);
+//   cout << "recovered text: " << decryptedPlaintext << endl;
+//   assert(decryptedPlaintext == hash_and_plaintext);
 
-  //get the message without the hash
-  string message_wout_hash = get_message_wout_hash(decryptedPlaintext);
-  cout << "plaintext without hash: " << message_wout_hash << endl;
-  assert(message_wout_hash == plain);
+//   //get the message without the hash
+//   string message_wout_hash = get_message_wout_hash(decryptedPlaintext);
+//   cout << "plaintext without hash: " << message_wout_hash << endl;
+//   assert(message_wout_hash == plain);
 
-  assert(verify_message(decryptedPlaintext));
-  cout << "message verified" << endl;
+//   assert(verify_message(decryptedPlaintext));
+//   cout << "message verified\n\n" << endl;
 
-  return 0;
-}
+//   // Temporaries
+//   string spki;
+//   StringSink ss(spki);
+
+//   // Use Save to DER encode the Subject Public Key Info (SPKI)
+//   publicKey.Save(ss);
+//   std::cout << "publicKeyString: \n" << spki << endl;
+//   std::cout << "publicKeyString.size(): \n" << spki.size() << endl;
+//   // printf("publicKeyString: \n%s\n", spki.data());
+
+
+
+
+//   return 0;
+// }
+
+// }
 

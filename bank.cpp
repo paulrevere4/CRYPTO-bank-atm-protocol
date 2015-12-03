@@ -13,18 +13,40 @@
 #include <sstream>
 #include <vector>
 #include <pthread.h>
+#include <utility>
+
+#include <crypto++/rsa.h>
+#include <crypto++/osrng.h>
+#include <crypto++/base64.h>
+#include <crypto++/files.h>
+
+#include "encrypt_decrypt.h"
 
 #define BUFFER_SIZE = 1024
 
+using namespace CryptoPP;
 using namespace std;
-
-
 
 typedef struct arg {
 	int port;
 	map<string, int> *bal;
 	pthread_mutex_t* lock;
 } arg;
+
+// pair<RSA::PrivateKey, RSA::PublicKey>
+// getNewKeys();
+
+// string
+// hash_and_encrypt(RSA::PublicKey publicKey, string plaintext);
+
+// string
+// decrypt(RSA::PrivateKey privateKey, string ciphertext);
+
+// string
+// get_message_wout_hash(string message_w_hash);
+
+// bool
+// verify_message(string message_w_hash);
 
 
 
@@ -58,125 +80,190 @@ void* listenPort(void* arguments)
 
     bzero(recvBuff,1024);
     n = recv(connfd, &recvBuff, 1023, 0);
-    //printf("Recd: %d bytes\n", n);
-    //printf("Received message: %s\n", recvBuff);
+    // printf("Recd: %d bytes\n", n);
+    // printf("Received message: %s\n", recvBuff);
 
-    vector<string> sections;
-    stringstream ss(recvBuff);
-    string split;
+    string command(recvBuff); 
 
-    while(getline(ss,split,'.'))
+    if ( command == "publickeyrequest" )
     {
-      sections.push_back(split);
-    }
 
-    string output;
+      // cout << "Received request for public key" << endl;
+      pair<RSA::PrivateKey, RSA::PublicKey>keys = getNewKeys();
+      RSA::PrivateKey privateKey = keys.first;
+      RSA::PublicKey publicKey = keys.second;
 
-    string username = sections[0];
-    
-    pthread_mutex_lock(args->lock);
-    
-    bool validUsername = (balances->find(username) != balances->end());
+      string spki;
+      StringSink ss(spki);
 
-    if (!validUsername)
-    {
-      cout << "Your username has been compromised. Aborting session" << endl;
-      break;
-    }
-    else if (sections[1] == "Balance")
-    {
-      output = "Your balance is ";
-    }
-    else if (sections[1] == "Withdraw"){
-      string amount = sections[2];
-      if (amount.size() > 10)
-			{
-				cout << "ERROR: Maximum account balance is 2000000000" << endl;
-			}
-			else if (amount.size() == 10 && (amount[0] != '0' &&  amount[0] != '1' && amount[0] != '2'))
-			{
-				cout << "ERROR: Maximum account balance is 2000000000" << endl;
-			}
-			else if (amount.size() == 10 && amount[0] == '2' && (amount[1] != '0' || amount[2] != '0' || amount[3] != '0' || amount[4] != '0' ||
-       				amount[5] != '0' || amount[6] != '0' || amount[7] != '0' || amount[8] != '0' || amount[9] != '0'))
-			{
-				cout << "ERROR: Maximum account balance is 2000000000" << endl;       
-			}
-			else if (amount.size() == 1 && amount[0] == '0')
-			{
-				cout << "ERROR: The amount entered must be a positive integer" << endl;
-			}
-			else
-			{
-        int deposit = atoi(sections[2].c_str());
-        if (deposit > (*balances)[username])
+      // Use Save to DER encode the Subject Public Key Info (SPKI)
+      publicKey.Save(ss);
+      // std::cout << "publicKeyString: \n" << spki << endl;
+
+      // snprintf(sendBuff, sizeof(sendBuff), "%s\n", spki.data());
+      for ( unsigned int i = 0; i < spki.size(); i++ ) {
+        sendBuff[i] = spki.data()[i];
+      }
+      // write(1, sendBuff, spki.size());
+      write(connfd, sendBuff, spki.size());
+
+      // printf("WAITING FOR A RESPONSE WITH DATA\n");
+      //connfd = accept(listenfd, (struct sockaddr*)NULL, NULL);
+      bzero(recvBuff,1024);
+      n = recv(connfd, &recvBuff, 1023, 0);
+      // printf("encrypted data:\n");
+      // write(1, recvBuff, 256);
+      string enc_msg = "";
+      for ( unsigned int i = 0; i < 256; i++ ) {
+        enc_msg += recvBuff[i];
+      }
+      // printf("\n");
+      string plaintext = decrypt(privateKey, enc_msg);
+      // printf("\n");
+
+      string message = get_message_wout_hash(plaintext);
+
+      if ( !verify_message(plaintext) )
+      {
+        cout << "HACKER!" << endl;
+        cout << "DIE DIE DIE DIE!" << endl;
+      }
+
+      //send public key request
+      // bzero(sendBuff,1024);
+      // string request = "publickeyrequest";
+      // strcpy(sendBuff,request.c_str());
+      // write(connfd, sendBuff, strlen(sendBuff));
+
+      // bzero(recvBuff,1024);
+      // n = read(sockfd,recvBuff,1023);
+
+      //========================================
+
+
+
+
+      // cout << message << endl;
+      strcpy(recvBuff, message.c_str());
+      vector<string> sections;
+      stringstream sstream(recvBuff);
+      string split;
+
+      while(getline(sstream,split,'.'))
+      {
+        sections.push_back(split);
+      }
+
+      string output;
+
+      string username = sections[0];
+      
+      pthread_mutex_lock(args->lock);
+      
+      bool validUsername = (balances->find(username) != balances->end());
+
+      if (!validUsername)
+      {
+        cout << "Your username has been compromised. Aborting session" << endl;
+        break;
+      }
+      else if (sections[1] == "Balance")
+      {
+        output = "Your balance is ";
+      }
+      else if (sections[1] == "Withdraw"){
+        string amount = sections[2];
+        if (amount.size() > 10)
         {
-          output = "Insufficient funds. Your balance is ";
+          cout << "ERROR: Maximum account balance is 2000000000" << endl;
+        }
+        else if (amount.size() == 10 && (amount[0] != '0' &&  amount[0] != '1' && amount[0] != '2'))
+        {
+          cout << "ERROR: Maximum account balance is 2000000000" << endl;
+        }
+        else if (amount.size() == 10 && amount[0] == '2' && (amount[1] != '0' || amount[2] != '0' || amount[3] != '0' || amount[4] != '0' ||
+                amount[5] != '0' || amount[6] != '0' || amount[7] != '0' || amount[8] != '0' || amount[9] != '0'))
+        {
+          cout << "ERROR: Maximum account balance is 2000000000" << endl;       
+        }
+        else if (amount.size() == 1 && amount[0] == '0')
+        {
+          cout << "ERROR: The amount entered must be a positive integer" << endl;
         }
         else
         {
-          (*balances)[username] -= deposit;
-          output = "Withdraw successful. Your balance is ";
-        }
-			}
-    }
-    else if (sections[1] == "Transfer")
-    {
-      string amount = sections[2];
-      if (amount.size() > 10)
-			{
-				cout << "ERROR: Maximum account balance is 2000000000" << endl;
-			}
-			else if (amount.size() == 10 && (amount[0] != '0' &&  amount[0] != '1' && amount[0] != '2'))
-			{
-				cout << "ERROR: Maximum account balance is 2000000000" << endl;
-			}
-			else if (amount.size() == 10 && amount[0] == '2' && (amount[1] != '0' || amount[2] != '0' || amount[3] != '0' || amount[4] != '0' ||
-       				amount[5] != '0' || amount[6] != '0' || amount[7] != '0' || amount[8] != '0' || amount[9] != '0'))
-			{
-				cout << "ERROR: Maximum account balance is 2000000000" << endl;       
-			}
-			else if (amount.size() == 1 && amount[0] == '0')
-			{
-				cout << "ERROR: The amount entered must be a positive integer" << endl;
-			}
-			else
-			{
-			  int transfer = atoi(sections[3].c_str());
-        if(transfer > (*balances)[username])
-        {
-          output = "Insufficient funds. Your balance is ";
-        }
-        else
-        {
-          string transfer_to = sections[2];
-          bool found_transfer = (balances->find(transfer_to) != balances->end());
-          
-          if (found_transfer)
+          int deposit = atoi(sections[2].c_str());
+          if (deposit > (*balances)[username])
           {
-            (*balances)[username] -= transfer;
-            (*balances)[transfer_to] += transfer;
-            output = "Transfer successful. Your balance is ";
+            output = "Insufficient funds. Your balance is ";
           }
-          
           else
           {
-            output = "Unable to find target account. Please try again.\nYour balance is ";
+            (*balances)[username] -= deposit;
+            output = "Withdraw successful. Your balance is ";
           }
         }
-			}
-    }
-    else
-    {
-      output = "Something went wrong. Please try again.\nYour balance is ";
+      }
+      else if (sections[1] == "Transfer")
+      {
+        string amount = sections[2];
+        if (amount.size() > 10)
+        {
+          cout << "ERROR: Maximum account balance is 2000000000" << endl;
+        }
+        else if (amount.size() == 10 && (amount[0] != '0' &&  amount[0] != '1' && amount[0] != '2'))
+        {
+          cout << "ERROR: Maximum account balance is 2000000000" << endl;
+        }
+        else if (amount.size() == 10 && amount[0] == '2' && (amount[1] != '0' || amount[2] != '0' || amount[3] != '0' || amount[4] != '0' ||
+                amount[5] != '0' || amount[6] != '0' || amount[7] != '0' || amount[8] != '0' || amount[9] != '0'))
+        {
+          cout << "ERROR: Maximum account balance is 2000000000" << endl;       
+        }
+        else if (amount.size() == 1 && amount[0] == '0')
+        {
+          cout << "ERROR: The amount entered must be a positive integer" << endl;
+        }
+        else
+        {
+          int transfer = atoi(sections[3].c_str());
+          if(transfer > (*balances)[username])
+          {
+            output = "Insufficient funds. Your balance is ";
+          }
+          else
+          {
+            string transfer_to = sections[2];
+            bool found_transfer = (balances->find(transfer_to) != balances->end());
+            
+            if (found_transfer)
+            {
+              (*balances)[username] -= transfer;
+              (*balances)[transfer_to] += transfer;
+              output = "Transfer successful. Your balance is ";
+            }
+            
+            else
+            {
+              output = "Unable to find target account. Please try again.\nYour balance is ";
+            }
+          }
+        }
+      }
+      else
+      {
+        output = "Something went wrong. Please try again.\nYour balance is ";
+      }
+
+      snprintf(sendBuff, sizeof(sendBuff), "%s%d\n", output.c_str(), (*balances)[username]);
+      write(connfd, sendBuff, strlen(sendBuff));
+      
+      pthread_mutex_unlock(args->lock);
+
+      close(connfd);
+
     }
 
-    snprintf(sendBuff, sizeof(sendBuff), "%s%d\n", output.c_str(), (*balances)[username]);
-    write(connfd, sendBuff, strlen(sendBuff));
-    
-    pthread_mutex_unlock(args->lock);
-
-    close(connfd);
   }
 }
 

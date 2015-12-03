@@ -12,6 +12,14 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h> 
+
+#include <crypto++/rsa.h>
+#include <crypto++/osrng.h>
+#include <crypto++/base64.h>
+#include <crypto++/files.h>
+
+#include "encrypt_decrypt.h"
+
 using namespace std;
 
 int main(int argc, char** argv)
@@ -28,7 +36,7 @@ int main(int argc, char** argv)
     struct sockaddr_in serv_addr;
     struct hostent *server;
 
-    char buffer[256];
+    char buffer[1024];
     
 	string users [3] = {"Alice", "Bob", "Eve"};
 	map<string, string> pins;
@@ -129,7 +137,7 @@ int main(int argc, char** argv)
 
 			else
 			{
-				
+				// printf("command: %s\n", command);
 				if (command == "Balance")
 				{
 					
@@ -161,29 +169,75 @@ int main(int argc, char** argv)
     				{
         				perror("ERROR connecting");
     				}
-					
-					bzero(buffer,256);
-					string msg = username + ".Balance";
-					strcpy(buffer,msg.c_str());
-					
+
+    				bzero(buffer,1024);
+					string request = "publickeyrequest";
+					strcpy(buffer,request.c_str());
+					// printf("buffer to send: %s\n", buffer);
 					n = write(sockfd,buffer,strlen(buffer));
+
+					bzero(buffer,1024);
+    				n = read(sockfd,buffer,1023);
+    				// write(1,buffer,1023);
+    				// cout << "public key: " << buffer << endl;
+    				StringSource ss((unsigned char*)buffer, 1023, true);
+
+    				RSA::PublicKey publicKey;
+					publicKey.Load(ss);
+
+					// string spki;
+					// StringSink sk(spki);
+
+					// printf("\n\n");
+
+					// // Use Save to DER encode the Subject Public Key Info (SPKI)
+					// publicKey.Save(sk);
+					// cout << "publicKeyString: \n" << spki << endl;
+
+					string msg = username + ".Balance";
+					string enc_msg = hash_and_encrypt(publicKey, msg);
+					// cout << "\n==================================\n" << endl;
+					// cout << enc_msg << endl;
+					bzero(buffer,1024);
+					for ( unsigned int i = 0; i < enc_msg.size(); i++ ) {
+				        buffer[i] = enc_msg[i];
+				    }
+					n = write(sockfd, buffer, enc_msg.size());
+					if (n < 0) 
+    				{
+         				perror("ERROR writing to socket");
+    				}
+
+    				bzero(buffer,1024);
+    				n = read(sockfd,buffer,1023);
+    				printf("%s\n",buffer);
+
+
+
+
+					
+					// bzero(buffer,1024);
+					// string msg = username + ".Balance";
+					// strcpy(buffer,msg.c_str());
+					
+					// n = write(sockfd,buffer,strlen(buffer));
     
-    				//printf("Wrote %d bytes\n", n);
+    	// 			printf("Wrote %d bytes\n", n);
     
     				if (n < 0) 
     				{
          				perror("ERROR writing to socket");
     				}
     
-    				bzero(buffer,256);
-    				n = read(sockfd,buffer,255);
+    	// 			bzero(buffer,256);
+    	// 			n = read(sockfd,buffer,255);
     
-    				if (n < 0)
-    				{
-         				perror("ERROR reading from socket");
-    				}
+    	// 			if (n < 0)
+    	// 			{
+     //     				perror("ERROR reading from socket");
+    	// 			}
     
-    				printf("%s\n",buffer);
+    	// 			printf("%s\n",buffer);
     				
     				close(sockfd);
 				}
@@ -232,51 +286,93 @@ int main(int argc, char** argv)
           				}
 						else
 						{
+							
 							portno = atoi(argv[1]);
-	    					sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	    
-	    					if (sockfd < 0)
-	    					{
-	    						perror("ERROR opening socket");
-	    					}
-	        
-	    					server = gethostbyname("localhost");
-	    
-	    					if (server == NULL)
-	    					{
-	        					fprintf(stderr,"ERROR, no such host\n");
-	        					exit(0);
-	    					}
-	    
-	    					bzero((char *) &serv_addr, sizeof(serv_addr));
-	    					serv_addr.sin_family = AF_INET;
-	    					bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr,server->h_length);
-	    					serv_addr.sin_port = htons(portno);
-	    
-	    					if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
-	    					{
-	        					perror("ERROR connecting");
-	    					}
-					
-							bzero(buffer,256);
-							string msg = username + ".Withdraw." + amount;
-							strcpy(buffer,msg.c_str());
+		    				sockfd = socket(AF_INET, SOCK_STREAM, 0);
+		    
+		    				if (sockfd < 0)
+		    				{
+		    					perror("ERROR opening socket");
+		    				}
+		        
+		    				server = gethostbyname("localhost");
+		    
+		    				if (server == NULL)
+		    				{
+		        				fprintf(stderr,"ERROR, no such host\n");
+		        				exit(0);
+		    				}
+		    
+		    				bzero((char *) &serv_addr, sizeof(serv_addr));
+		    				serv_addr.sin_family = AF_INET;
+		    				bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr,server->h_length);
+		    				serv_addr.sin_port = htons(portno);
+		    
+		    				if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
+		    				{
+		        				perror("ERROR connecting");
+		    				}
+
+		    				bzero(buffer,1024);
+							string request = "publickeyrequest";
+							strcpy(buffer,request.c_str());
+							// printf("buffer to send: %s\n", buffer);
 							n = write(sockfd,buffer,strlen(buffer));
-    
-    						if (n < 0) 
-    						{
-         						perror("ERROR writing to socket");
-    						}
-    
-    						bzero(buffer,256);
-    						n = read(sockfd,buffer,255);
-    
-    						if (n < 0)
-    						{
-         						perror("ERROR reading from socket");
-    						}
-    
-    						printf("%s\n",buffer);
+
+							bzero(buffer,1024);
+		    				n = read(sockfd,buffer,1023);
+		    				// write(1,buffer,1023);
+		    				// cout << "public key: " << buffer << endl;
+		    				StringSource ss((unsigned char*)buffer, 1023, true);
+
+		    				RSA::PublicKey publicKey;
+							publicKey.Load(ss);
+
+							// string spki;
+							// StringSink sk(spki);
+
+							// printf("\n\n");
+
+							// // Use Save to DER encode the Subject Public Key Info (SPKI)
+							// publicKey.Save(sk);
+							// cout << "publicKeyString: \n" << spki << endl;
+
+							string msg = username + ".Withdraw." + amount;
+							string enc_msg = hash_and_encrypt(publicKey, msg);
+							// cout << enc_msg << endl;
+							bzero(buffer,1024);
+							for ( unsigned int i = 0; i < enc_msg.size(); i++ ) {
+						        buffer[i] = enc_msg[i];
+						    }
+							n = write(sockfd, buffer, enc_msg.size());
+							if (n < 0) 
+		    				{
+		         				perror("ERROR writing to socket");
+		    				}
+
+		    				bzero(buffer,1024);
+		    				n = read(sockfd,buffer,1023);
+		    				printf("%s\n",buffer);
+
+
+
+
+							
+							// bzero(buffer,1024);
+							// string msg = username + ".Balance";
+							// strcpy(buffer,msg.c_str());
+							
+							// n = write(sockfd,buffer,strlen(buffer));
+		    
+		    	// 			printf("Wrote %d bytes\n", n);
+		    
+		    				if (n < 0) 
+		    				{
+		         				perror("ERROR writing to socket");
+		    				}
+
+		    				//==========================================================
+									
     				
     						close(sockfd);
 						}
@@ -331,50 +427,89 @@ int main(int argc, char** argv)
 							if (pins.find(recipient) != pins.end())
 							{
 								portno = atoi(argv[1]);
-	    						sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	    
-	    						if (sockfd < 0)
-	    						{
-	    							perror("ERROR opening socket");
-	    						}
-	        
-	    						server = gethostbyname("localhost");
-	    
-	    						if (server == NULL)
-	    						{
-	        						fprintf(stderr,"ERROR, no such host\n");
-	        						exit(0);
-	    						}
-	    
-	    						bzero((char *) &serv_addr, sizeof(serv_addr));
-	    						serv_addr.sin_family = AF_INET;
-	    						bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr,server->h_length);
-	    						serv_addr.sin_port = htons(portno);
-	    
-	    						if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
-	    						{
-	        						perror("ERROR connecting");
-	    						}
-							
-								bzero(buffer,256);
-								string msg = username + ".Transfer." + recipient + '.' + amount;
-								strcpy(buffer,msg.c_str());
+			    				sockfd = socket(AF_INET, SOCK_STREAM, 0);
+			    
+			    				if (sockfd < 0)
+			    				{
+			    					perror("ERROR opening socket");
+			    				}
+			        
+			    				server = gethostbyname("localhost");
+			    
+			    				if (server == NULL)
+			    				{
+			        				fprintf(stderr,"ERROR, no such host\n");
+			        				exit(0);
+			    				}
+			    
+			    				bzero((char *) &serv_addr, sizeof(serv_addr));
+			    				serv_addr.sin_family = AF_INET;
+			    				bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr,server->h_length);
+			    				serv_addr.sin_port = htons(portno);
+			    
+			    				if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
+			    				{
+			        				perror("ERROR connecting");
+			    				}
+
+			    				bzero(buffer,1024);
+								string request = "publickeyrequest";
+								strcpy(buffer,request.c_str());
+								// printf("buffer to send: %s\n", buffer);
 								n = write(sockfd,buffer,strlen(buffer));
-	    
-	    						if (n < 0) 
-	    						{
-	         						perror("ERROR writing to socket");
-	    						}
-	    
-	    						bzero(buffer,256);
-	    						n = read(sockfd,buffer,255);
-	    
-	    						if (n < 0)
-	    						{
-	         						perror("ERROR reading from socket");
-	    						}
-	    
-	    						printf("%s\n",buffer);
+
+								bzero(buffer,1024);
+			    				n = read(sockfd,buffer,1023);
+			    				// write(1,buffer,1023);
+			    				// cout << "public key: " << buffer << endl;
+			    				StringSource ss((unsigned char*)buffer, 1023, true);
+
+			    				RSA::PublicKey publicKey;
+								publicKey.Load(ss);
+
+								// string spki;
+								// StringSink sk(spki);
+
+								// printf("\n\n");
+
+								// // Use Save to DER encode the Subject Public Key Info (SPKI)
+								// publicKey.Save(sk);
+								// cout << "publicKeyString: \n" << spki << endl;
+
+								string msg = username + ".Transfer." + recipient + '.' + amount;
+
+								string enc_msg = hash_and_encrypt(publicKey, msg);
+								// cout << enc_msg << endl;
+								bzero(buffer,1024);
+								for ( unsigned int i = 0; i < enc_msg.size(); i++ ) {
+							        buffer[i] = enc_msg[i];
+							    }
+								n = write(sockfd, buffer, enc_msg.size());
+								if (n < 0) 
+			    				{
+			         				perror("ERROR writing to socket");
+			    				}
+
+			    				bzero(buffer,1024);
+			    				n = read(sockfd,buffer,1023);
+			    				printf("%s\n",buffer);
+
+
+
+
+								
+								// bzero(buffer,1024);
+								// string msg = username + ".Balance";
+								// strcpy(buffer,msg.c_str());
+								
+								// n = write(sockfd,buffer,strlen(buffer));
+			    
+			    	// 			printf("Wrote %d bytes\n", n);
+			    
+			    				if (n < 0) 
+			    				{
+			         				perror("ERROR writing to socket");
+			    				}
 	    					
 	    						close(sockfd);
 							}
