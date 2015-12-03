@@ -121,8 +121,7 @@ void* listenPort(void* arguments)
 
       if (!validUsername)
       {
-        cout << "Your username has been compromised. Aborting session" << endl;
-        break;
+        output = "Unable to find source account. Please try again.\nYour balance is ";
       }
       else if (sections[1] == "Balance")
       {
@@ -130,79 +129,117 @@ void* listenPort(void* arguments)
       }
       else if (sections[1] == "Withdraw"){
         string amount = sections[2];
-        if (amount.size() > 10)
-        {
-          cout << "ERROR: Maximum account balance is 2000000000" << endl;
-        }
-        else if (amount.size() == 10 && (amount[0] != '0' &&  amount[0] != '1' && amount[0] != '2'))
-        {
-          cout << "ERROR: Maximum account balance is 2000000000" << endl;
-        }
-        else if (amount.size() == 10 && amount[0] == '2' && (amount[1] != '0' || amount[2] != '0' || amount[3] != '0' || amount[4] != '0' ||
-                amount[5] != '0' || amount[6] != '0' || amount[7] != '0' || amount[8] != '0' || amount[9] != '0'))
-        {
-          cout << "ERROR: Maximum account balance is 2000000000" << endl;       
-        }
-        else if (amount.size() == 1 && amount[0] == '0')
-        {
-          cout << "ERROR: The amount entered must be a positive integer" << endl;
-        }
-        else
-        {
-          int deposit = atoi(sections[2].c_str());
-          if (deposit > (*balances)[username])
+        
+        bool integer = true;
+				for (int i = 0; i < amount.size(); i++)
+				{
+					if (!isdigit(amount[i]))
+					{
+						integer = false;
+					}
+				}
+				
+				if (!integer)
+				{
+					output = "ERROR: The amount entered must be a positive integer.\nYour balance is ";
+				}
+				
+				else
+				{
+          
+          if (amount.size() > 10)
           {
-            output = "Insufficient funds. Your balance is ";
+            output = "ERROR: Maximum account balance is 2000000000.\nYour balance is ";
+          }
+          else if (amount.size() == 10 && (amount[0] != '0' &&  amount[0] != '1' && amount[0] != '2'))
+          {
+            output = "ERROR: Maximum account balance is 2000000000.\nYour balance is ";
+          }
+          else if (amount.size() == 10 && amount[0] == '2' && (amount[1] != '0' || amount[2] != '0' || amount[3] != '0' || amount[4] != '0' ||
+                  amount[5] != '0' || amount[6] != '0' || amount[7] != '0' || amount[8] != '0' || amount[9] != '0'))
+          {
+            output = "ERROR: Maximum account balance is 2000000000.\nYour balance is ";       
+          }
+          else if (amount.size() == 1 && amount[0] == '0')
+          {
+            output = "ERROR: The amount entered must be a positive integer.\nYour balance is ";
           }
           else
           {
-            (*balances)[username] -= deposit;
-            output = "Withdraw successful. Your balance is ";
+            int deposit = atoi(sections[2].c_str());
+            if (deposit > (*balances)[username])
+            {
+              output = "Insufficient funds. Your balance is ";
+            }
+            else
+            {
+              (*balances)[username] -= deposit;
+              output = "Withdraw successful. Your balance is ";
+            }
           }
-        }
+				}
       }
       else if (sections[1] == "Transfer")
       {
         string amount = sections[2];
-        if (amount.size() > 10)
-        {
-          cout << "ERROR: Maximum account balance is 2000000000" << endl;
-        }
-        else if (amount.size() == 10 && (amount[0] != '0' &&  amount[0] != '1' && amount[0] != '2'))
-        {
-          cout << "ERROR: Maximum account balance is 2000000000" << endl;
-        }
-        else if (amount.size() == 10 && amount[0] == '2' && (amount[1] != '0' || amount[2] != '0' || amount[3] != '0' || amount[4] != '0' ||
-                amount[5] != '0' || amount[6] != '0' || amount[7] != '0' || amount[8] != '0' || amount[9] != '0'))
-        {
-          cout << "ERROR: Maximum account balance is 2000000000" << endl;       
-        }
-        else if (amount.size() == 1 && amount[0] == '0')
-        {
-          cout << "ERROR: The amount entered must be a positive integer" << endl;
-        }
-        else
-        {
-          int transfer = atoi(sections[3].c_str());
-          if(transfer > (*balances)[username])
+        
+        bool integer = true;
+				for (int i = 0; i < amount.size(); i++)
+				{
+					if (!isdigit(amount[i]))
+					{
+						integer = false;
+					}
+				}
+				
+				if (!integer)
+				{
+					output = "ERROR: The amount entered must be a positive integer.\nYour balance is ";
+				}
+				
+				else
+				{
+        
+          if (amount.size() > 10)
           {
-            output = "Insufficient funds. Your balance is ";
+            output = "ERROR: Maximum account balance is 2000000000.\nYour balance is ";
+          }
+          else if (amount.size() == 10 && (amount[0] != '0' &&  amount[0] != '1' && amount[0] != '2'))
+          {
+            output = "ERROR: Maximum account balance is 2000000000.\nYour balance is ";
+          }
+          else if (amount.size() == 10 && amount[0] == '2' && (amount[1] != '0' || amount[2] != '0' || amount[3] != '0' || amount[4] != '0' ||
+                  amount[5] != '0' || amount[6] != '0' || amount[7] != '0' || amount[8] != '0' || amount[9] != '0'))
+          {
+            output = "ERROR: Maximum account balance is 2000000000";       
+          }
+          else if (amount.size() == 1 && amount[0] == '0')
+          {
+            output = "ERROR: The amount entered must be a positive integer";
           }
           else
           {
-            string transfer_to = sections[2];
-            bool found_transfer = (balances->find(transfer_to) != balances->end());
-            
-            if (found_transfer)
+            int transfer = atoi(sections[3].c_str());
+            if(transfer > (*balances)[username])
             {
-              (*balances)[username] -= transfer;
-              (*balances)[transfer_to] += transfer;
-              output = "Transfer successful. Your balance is ";
+              output = "Insufficient funds. Your balance is ";
             }
-            
             else
             {
-              output = "Unable to find target account. Please try again.\nYour balance is ";
+              string transfer_to = sections[2];
+              bool found_transfer = (balances->find(transfer_to) != balances->end());
+              
+              if (found_transfer)
+              {
+                (*balances)[username] -= transfer;
+                (*balances)[transfer_to] += transfer;
+                output = "Transfer successful. Your balance is ";
+              }
+              
+              else
+              {
+                output = "Unable to find target account. Please try again.\nYour balance is ";
+              }
             }
           }
         }
