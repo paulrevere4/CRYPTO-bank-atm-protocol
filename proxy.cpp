@@ -49,13 +49,6 @@ int main(int argc, char** argv)
 
   listen(listenfd, 10);
 
-  
-
-  // if (connect(sockfd,(struct sockaddr *) &send_serv_addr,sizeof(serv_addr)) < 0)
-  // {
-  //     perror("ERROR connecting");
-  // }
-
   while(1)
   {
     cout << "listening..." << endl;
@@ -92,7 +85,6 @@ int main(int argc, char** argv)
     printf("Recd: %d bytes from ATM\n", n);
     printf("Received message from ATM: \n");
 
-    // snprintf(sendBuff, sizeof(sendBuff), "%s", recvBuff);
     for ( int i = 0; i < n; i++ )
     {
       sendBuff[i] = recvBuff[i];
@@ -107,10 +99,7 @@ int main(int argc, char** argv)
     n = read(sockfd, recvBuff, 1023);
     printf("Read: %d bytes from BANK\n", n);
     printf("Received message from BANK: \n");
-    // write(1, recvBuff, n);
-    // printf("\n");
 
-    // snprintf(sendBuff, sizeof(sendBuff), "%s", recvBuff);
     for ( int i = 0; i < n; i++ )
     {
       sendBuff[i] = recvBuff[i];
@@ -126,7 +115,6 @@ int main(int argc, char** argv)
     printf("Recd: %d bytes from ATM\n", n);
     printf("Received message from ATM: \n");
 
-    // snprintf(sendBuff, sizeof(sendBuff), "%s", recvBuff);
     for ( int i = 0; i < n; i++ )
     {
       sendBuff[i] = recvBuff[i];
@@ -141,10 +129,7 @@ int main(int argc, char** argv)
     n = read(sockfd, recvBuff, 1023);
     printf("Read: %d bytes from BANK\n", n);
     printf("Received message from BANK: \n");
-    // write(1, recvBuff, n);
-    // printf("\n");
 
-    // snprintf(sendBuff, sizeof(sendBuff), "%s", recvBuff);
     for ( int i = 0; i < n; i++ )
     {
       sendBuff[i] = recvBuff[i];
@@ -160,7 +145,6 @@ int main(int argc, char** argv)
     printf("Recd: %d bytes from ATM\n", n);
     printf("Received message from ATM: \n");
 
-    // snprintf(sendBuff, sizeof(sendBuff), "%s", recvBuff);
     for ( int i = 0; i < n; i++ )
     {
       sendBuff[i] = recvBuff[i];
@@ -175,10 +159,7 @@ int main(int argc, char** argv)
     n = read(sockfd, recvBuff, 1023);
     printf("Read: %d bytes from BANK\n", n);
     printf("Received message from BANK: \n");
-    // write(1, recvBuff, n);
-    // printf("\n");
 
-    // snprintf(sendBuff, sizeof(sendBuff), "%s", recvBuff);
     for ( int i = 0; i < n; i++ )
     {
       sendBuff[i] = recvBuff[i];
