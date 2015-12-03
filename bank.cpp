@@ -298,7 +298,7 @@ int main(int argc, char** argv)
   const int PORT_TO_PROXY = atoi(argv[1]);
 
   cout << "Hello world! I am a bank!" << endl;
-  cout << "I will listen on port " << PORT_TO_PROXY << endl;
+  // cout << "I will listen on port " << PORT_TO_PROXY << endl;
 
   map<string, int> balances;
   balances["Alice"] = 100;
