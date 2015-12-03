@@ -23,19 +23,13 @@ int main(int argc, char** argv)
 		cout << "USAGE: ./atm.exe <connect-port>" << endl;
 		return 1;
 	}
-	
-	// Connecting to the bank
-	
+
 	int sockfd, portno, n;
     struct sockaddr_in serv_addr;
     struct hostent *server;
 
     char buffer[256];
     
-    // Now connected to the bank
-	
-
-
 	string users [3] = {"Alice", "Bob", "Eve"};
 	map<string, string> pins;
 
@@ -47,15 +41,6 @@ int main(int argc, char** argv)
 
 		pins[users[i]] = pin;
 	}
-
-	map<string, string>::iterator it;
-	for (it = pins.begin(); it != pins.end(); it++)
-	{
-		cout << it->first << ": " << it->second << endl;
-	}
-
-
-
 
 	bool loggedIn = false;
 	string username;
@@ -222,59 +207,79 @@ int main(int argc, char** argv)
 					
 					if (!integer)
 					{
-						cout << "ERROR: Amount must be an integer" << endl;
+						cout << "ERROR: The amount entered must be a positive integer" << endl;
 					}
 					
 					else
 					{
+						
+						if (amount.size() > 10)
+          				{
+            				cout << "ERROR: Maximum account balance is 2000000000" << endl;
+          				}
+          				else if (amount.size() == 10 && (amount[0] != '0' &&  amount[0] != '1' && amount[0] != '2'))
+          				{
+            				cout << "ERROR: Maximum account balance is 2000000000" << endl;
+          				}
+          				else if (amount.size() == 10 && amount[0] == '2' && (amount[1] != '0' || amount[2] != '0' || amount[3] != '0' || amount[4] != '0' ||
+                   				amount[5] != '0' || amount[6] != '0' || amount[7] != '0' || amount[8] != '0' || amount[9] != '0'))
+          				{
+            				cout << "ERROR: Maximum account balance is 2000000000" << endl;       
+          				}
+          				else if (amount.size() == 1 && amount[0] == '0')
+          				{
+          					cout << "ERROR: The amount entered must be a positive integer" << endl;
+          				}
+						else
+						{
+							portno = atoi(argv[1]);
+	    					sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	    
+	    					if (sockfd < 0)
+	    					{
+	    						perror("ERROR opening socket");
+	    					}
+	        
+	    					server = gethostbyname("localhost");
+	    
+	    					if (server == NULL)
+	    					{
+	        					fprintf(stderr,"ERROR, no such host\n");
+	        					exit(0);
+	    					}
+	    
+	    					bzero((char *) &serv_addr, sizeof(serv_addr));
+	    					serv_addr.sin_family = AF_INET;
+	    					bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr,server->h_length);
+	    					serv_addr.sin_port = htons(portno);
+	    
+	    					if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
+	    					{
+	        					perror("ERROR connecting");
+	    					}
 					
-						portno = atoi(argv[1]);
-    					sockfd = socket(AF_INET, SOCK_STREAM, 0);
+							bzero(buffer,256);
+							string msg = username + ".Withdraw." + amount;
+							strcpy(buffer,msg.c_str());
+							n = write(sockfd,buffer,strlen(buffer));
     
-    					if (sockfd < 0)
-    					{
-    						perror("ERROR opening socket");
-    					}
-        
-    					server = gethostbyname("localhost");
+    						if (n < 0) 
+    						{
+         						perror("ERROR writing to socket");
+    						}
     
-    					if (server == NULL)
-    					{
-        					fprintf(stderr,"ERROR, no such host\n");
-        					exit(0);
-    					}
+    						bzero(buffer,256);
+    						n = read(sockfd,buffer,255);
     
-    					bzero((char *) &serv_addr, sizeof(serv_addr));
-    					serv_addr.sin_family = AF_INET;
-    					bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr,server->h_length);
-    					serv_addr.sin_port = htons(portno);
+    						if (n < 0)
+    						{
+         						perror("ERROR reading from socket");
+    						}
     
-    					if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
-    					{
-        					perror("ERROR connecting");
-    					}
-					
-						bzero(buffer,256);
-						string msg = username + ".Withdraw." + amount;
-						strcpy(buffer,msg.c_str());
-						n = write(sockfd,buffer,strlen(buffer));
-    
-    					if (n < 0) 
-    					{
-         					perror("ERROR writing to socket");
-    					}
-    
-    					bzero(buffer,256);
-    					n = read(sockfd,buffer,255);
-    
-    					if (n < 0)
-    					{
-         					perror("ERROR reading from socket");
-    					}
-    
-    					printf("%s\n",buffer);
+    						printf("%s\n",buffer);
     				
-    					close(sockfd);
+    						close(sockfd);
+						}
 					}
 				}
 
@@ -298,66 +303,86 @@ int main(int argc, char** argv)
 					
 					if (!integer)
 					{
-						cout << "ERROR: Amount must be an integer" << endl;
+						cout << "ERROR: The amount entered must be a positive integer" << endl;
 					}
 					
 					else
 					{
+						if (amount.size() > 10)
+          				{
+            				cout << "ERROR: Maximum account balance is 2000000000" << endl;
+          				}
+          				else if (amount.size() == 10 && (amount[0] != '0' &&  amount[0] != '1' && amount[0] != '2'))
+          				{
+            				cout << "ERROR: Maximum account balance is 2000000000" << endl;
+          				}
+          				else if (amount.size() == 10 && amount[0] == '2' && (amount[1] != '0' || amount[2] != '0' || amount[3] != '0' || amount[4] != '0' ||
+                   				amount[5] != '0' || amount[6] != '0' || amount[7] != '0' || amount[8] != '0' || amount[9] != '0'))
+          				{
+            				cout << "ERROR: Maximum account balance is 2000000000" << endl;       
+          				}
+          				else if (amount.size() == 1 && amount[0] == '0')
+          				{
+          					cout << "ERROR: The amount entered must be a positive integer" << endl;
+          				}
+          				else
+          				{
 					
-						if (pins.find(recipient) != pins.end())
-						{
-							portno = atoi(argv[1]);
-    						sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    
-    						if (sockfd < 0)
-    						{
-    							perror("ERROR opening socket");
-    						}
-        
-    						server = gethostbyname("localhost");
-    
-    						if (server == NULL)
-    						{
-        						fprintf(stderr,"ERROR, no such host\n");
-        						exit(0);
-    						}
-    
-    						bzero((char *) &serv_addr, sizeof(serv_addr));
-    						serv_addr.sin_family = AF_INET;
-    						bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr,server->h_length);
-    						serv_addr.sin_port = htons(portno);
-    
-    						if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
-    						{
-        						perror("ERROR connecting");
-    						}
-						
-							bzero(buffer,256);
-							string msg = username + ".Transfer." + recipient + '.' + amount;
-							strcpy(buffer,msg.c_str());
-							n = write(sockfd,buffer,strlen(buffer));
-    
-    						if (n < 0) 
-    						{
-         						perror("ERROR writing to socket");
-    						}
-    
-    						bzero(buffer,256);
-    						n = read(sockfd,buffer,255);
-    
-    						if (n < 0)
-    						{
-         						perror("ERROR reading from socket");
-    						}
-    
-    						printf("%s\n",buffer);
-    					
-    						close(sockfd);
-						}
-						else
-						{
-							cout << "ERROR: Invalid user" << endl;
-						}
+							if (pins.find(recipient) != pins.end())
+							{
+								portno = atoi(argv[1]);
+	    						sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	    
+	    						if (sockfd < 0)
+	    						{
+	    							perror("ERROR opening socket");
+	    						}
+	        
+	    						server = gethostbyname("localhost");
+	    
+	    						if (server == NULL)
+	    						{
+	        						fprintf(stderr,"ERROR, no such host\n");
+	        						exit(0);
+	    						}
+	    
+	    						bzero((char *) &serv_addr, sizeof(serv_addr));
+	    						serv_addr.sin_family = AF_INET;
+	    						bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr,server->h_length);
+	    						serv_addr.sin_port = htons(portno);
+	    
+	    						if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
+	    						{
+	        						perror("ERROR connecting");
+	    						}
+							
+								bzero(buffer,256);
+								string msg = username + ".Transfer." + recipient + '.' + amount;
+								strcpy(buffer,msg.c_str());
+								n = write(sockfd,buffer,strlen(buffer));
+	    
+	    						if (n < 0) 
+	    						{
+	         						perror("ERROR writing to socket");
+	    						}
+	    
+	    						bzero(buffer,256);
+	    						n = read(sockfd,buffer,255);
+	    
+	    						if (n < 0)
+	    						{
+	         						perror("ERROR reading from socket");
+	    						}
+	    
+	    						printf("%s\n",buffer);
+	    					
+	    						close(sockfd);
+							}
+							else
+							{
+								cout << "ERROR: Invalid user" << endl;
+							}
+          				}
 					}
 				}
 				

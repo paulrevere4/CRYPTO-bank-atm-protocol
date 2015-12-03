@@ -23,6 +23,7 @@ using namespace std;
 typedef struct arg {
 	int port;
 	map<string, int> *bal;
+	pthread_mutex_t* lock;
 } arg;
 
 
@@ -72,6 +73,9 @@ void* listenPort(void* arguments)
     string output;
 
     string username = sections[0];
+    
+    pthread_mutex_lock(args->lock);
+    
     bool validUsername = (balances->find(username) != balances->end());
 
     if (!validUsername)
@@ -84,57 +88,83 @@ void* listenPort(void* arguments)
       output = "Your balance is ";
     }
     else if (sections[1] == "Withdraw"){
-      int amount = atoi(sections[2].c_str());
-      if (amount > 10000 || sections[2].size() > 9)
-      {
-        output = "You may withdraw a maximum of $10,000 per transaction. Your balance is ";
-      }
-      else if (amount < 0)
-      {
-        output = "You must withdraw a positive amount. Your balance is ";
-      }
-      else if (amount > (*balances)[username])
-      {
-        output = "Insufficient funds. Your balance is ";
-      }
-      else
-      {
-        (*balances)[username] -= amount;
-        output = "Withdraw successful. Your balance is ";
-      }
+      string amount = sections[2];
+      if (amount.size() > 10)
+			{
+				cout << "ERROR: Maximum account balance is 2000000000" << endl;
+			}
+			else if (amount.size() == 10 && (amount[0] != '0' &&  amount[0] != '1' && amount[0] != '2'))
+			{
+				cout << "ERROR: Maximum account balance is 2000000000" << endl;
+			}
+			else if (amount.size() == 10 && amount[0] == '2' && (amount[1] != '0' || amount[2] != '0' || amount[3] != '0' || amount[4] != '0' ||
+       				amount[5] != '0' || amount[6] != '0' || amount[7] != '0' || amount[8] != '0' || amount[9] != '0'))
+			{
+				cout << "ERROR: Maximum account balance is 2000000000" << endl;       
+			}
+			else if (amount.size() == 1 && amount[0] == '0')
+			{
+				cout << "ERROR: The amount entered must be a positive integer" << endl;
+			}
+			else
+			{
+        int deposit = atoi(sections[2].c_str());
+        if (deposit > (*balances)[username])
+        {
+          output = "Insufficient funds. Your balance is ";
+        }
+        else
+        {
+          (*balances)[username] -= deposit;
+          output = "Withdraw successful. Your balance is ";
+        }
+			}
     }
     else if (sections[1] == "Transfer")
     {
-      int amount = atoi(sections[2].c_str());
-      if (amount > 10000 || sections[2].size() > 9)
-      {
-        output = "You may transfer a maximum of $10,000 per transaction. Your balance is ";
-      }
-      else if (amount < 0)
-      {
-        output = "You must transfer a positive amount. Your balance is ";
-      }
-      else if(amount > (*balances)[username])
-      {
-        output = "Insufficient funds. Your balance is ";
-      }
-      else
-      {
-        string transfer_to = sections[3];
-        bool found_transfer = (balances->find(transfer_to) != balances->end());
-        
-        if (found_transfer)
+      string amount = sections[2];
+      if (amount.size() > 10)
+			{
+				cout << "ERROR: Maximum account balance is 2000000000" << endl;
+			}
+			else if (amount.size() == 10 && (amount[0] != '0' &&  amount[0] != '1' && amount[0] != '2'))
+			{
+				cout << "ERROR: Maximum account balance is 2000000000" << endl;
+			}
+			else if (amount.size() == 10 && amount[0] == '2' && (amount[1] != '0' || amount[2] != '0' || amount[3] != '0' || amount[4] != '0' ||
+       				amount[5] != '0' || amount[6] != '0' || amount[7] != '0' || amount[8] != '0' || amount[9] != '0'))
+			{
+				cout << "ERROR: Maximum account balance is 2000000000" << endl;       
+			}
+			else if (amount.size() == 1 && amount[0] == '0')
+			{
+				cout << "ERROR: The amount entered must be a positive integer" << endl;
+			}
+			else
+			{
+			  int transfer = atoi(sections[3].c_str());
+        if(transfer > (*balances)[username])
         {
-          (*balances)[username] -= amount;
-          (*balances)[transfer_to] += amount;
-          output = "Transfer successful. Your balance is ";
+          output = "Insufficient funds. Your balance is ";
         }
-        
         else
         {
-          output = "Unable to find target account. Please try again.\nYour balance is ";
+          string transfer_to = sections[2];
+          bool found_transfer = (balances->find(transfer_to) != balances->end());
+          
+          if (found_transfer)
+          {
+            (*balances)[username] -= transfer;
+            (*balances)[transfer_to] += transfer;
+            output = "Transfer successful. Your balance is ";
+          }
+          
+          else
+          {
+            output = "Unable to find target account. Please try again.\nYour balance is ";
+          }
         }
-      }
+			}
     }
     else
     {
@@ -143,6 +173,8 @@ void* listenPort(void* arguments)
 
     snprintf(sendBuff, sizeof(sendBuff), "%s%d\n", output.c_str(), (*balances)[username]);
     write(connfd, sendBuff, strlen(sendBuff));
+    
+    pthread_mutex_unlock(args->lock);
 
     close(connfd);
   }
@@ -167,9 +199,12 @@ int main(int argc, char** argv)
   balances["Bob"] = 50;
   balances["Eve"] = 0;
   
+  pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+  
   arg args;
   args.port = PORT_TO_PROXY;
   args.bal = &balances;
+  args.lock = &mutex;
   
   pthread_t tid;
   int rc = pthread_create(&tid, NULL, listenPort, (void*)&args);
