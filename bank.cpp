@@ -12,10 +12,141 @@
 #include <map>
 #include <sstream>
 #include <vector>
+#include <pthread.h>
 
 #define BUFFER_SIZE = 1024
 
 using namespace std;
+
+
+
+typedef struct arg {
+	int port;
+	map<string, int> *bal;
+} arg;
+
+
+
+void* listenPort(void* arguments)
+{
+  arg* args = (arg*)arguments;
+  int PORT_TO_PROXY = args->port;
+  map<string, int> *balances = args->bal;
+  
+  int listenfd = 0, connfd = 0, n = 0;
+  struct sockaddr_in serv_addr;
+
+  char sendBuff[1025], recvBuff[1025];
+
+  listenfd = socket(AF_INET, SOCK_STREAM, 0);
+  memset(&serv_addr, '0', sizeof(serv_addr));
+  memset(sendBuff, '0', sizeof(sendBuff));
+
+  serv_addr.sin_family = AF_INET;
+  serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+  serv_addr.sin_port = htons(PORT_TO_PROXY); 
+
+  bind(listenfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)); 
+
+  listen(listenfd, 10);
+  
+  while (1)
+  {
+    //cout << "listening..." << endl;
+    connfd = accept(listenfd, (struct sockaddr*)NULL, NULL);
+
+    bzero(recvBuff,1024);
+    n = recv(connfd, &recvBuff, 1023, 0);
+    //printf("Recd: %d bytes\n", n);
+    //printf("Received message: %s\n", recvBuff);
+
+    vector<string> sections;
+    stringstream ss(recvBuff);
+    string split;
+
+    while(getline(ss,split,'.'))
+    {
+      sections.push_back(split);
+    }
+
+    string output;
+
+    string username = sections[0];
+    bool validUsername = (balances->find(username) != balances->end());
+
+    if (!validUsername)
+    {
+      cout << "Your username has been compromised. Aborting session" << endl;
+      break;
+    }
+    else if (sections[1] == "Balance")
+    {
+      output = "Your balance is ";
+    }
+    else if (sections[1] == "Withdraw"){
+      int amount = atoi(sections[2].c_str());
+      if (amount > 10000 || sections[2].size() > 9)
+      {
+        output = "You may withdraw a maximum of $10,000 per transaction. Your balance is ";
+      }
+      else if (amount < 0)
+      {
+        output = "You must withdraw a positive amount. Your balance is ";
+      }
+      else if (amount > (*balances)[username])
+      {
+        output = "Insufficient funds. Your balance is ";
+      }
+      else
+      {
+        (*balances)[username] -= amount;
+        output = "Withdraw successful. Your balance is ";
+      }
+    }
+    else if (sections[1] == "Transfer")
+    {
+      int amount = atoi(sections[2].c_str());
+      if (amount > 10000 || sections[2].size() > 9)
+      {
+        output = "You may transfer a maximum of $10,000 per transaction. Your balance is ";
+      }
+      else if (amount < 0)
+      {
+        output = "You must transfer a positive amount. Your balance is ";
+      }
+      else if(amount > (*balances)[username])
+      {
+        output = "Insufficient funds. Your balance is ";
+      }
+      else
+      {
+        string transfer_to = sections[3];
+        bool found_transfer = (balances->find(transfer_to) != balances->end());
+        
+        if (found_transfer)
+        {
+          (*balances)[username] -= amount;
+          (*balances)[transfer_to] += amount;
+          output = "Transfer successful. Your balance is ";
+        }
+        
+        else
+        {
+          output = "Unable to find target account. Please try again.\nYour balance is ";
+        }
+      }
+    }
+    else
+    {
+      output = "Something went wrong. Please try again.\nYour balance is ";
+    }
+
+    snprintf(sendBuff, sizeof(sendBuff), "%s%d\n", output.c_str(), (*balances)[username]);
+    write(connfd, sendBuff, strlen(sendBuff));
+
+    close(connfd);
+  }
+}
 
 int main(int argc, char** argv)
 {
@@ -35,25 +166,19 @@ int main(int argc, char** argv)
   balances["Alice"] = 100;
   balances["Bob"] = 50;
   balances["Eve"] = 0;
-
-  // ==========================================================================
-
-  int listenfd = 0, connfd = 0, n = 0;
-  struct sockaddr_in serv_addr;
-
-  char sendBuff[1025], recvBuff[1025];
-
-  listenfd = socket(AF_INET, SOCK_STREAM, 0);
-  memset(&serv_addr, '0', sizeof(serv_addr));
-  memset(sendBuff, '0', sizeof(sendBuff));
-
-  serv_addr.sin_family = AF_INET;
-  serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-  serv_addr.sin_port = htons(PORT_TO_PROXY); 
-
-  bind(listenfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)); 
-
-  listen(listenfd, 10);
+  
+  arg args;
+  args.port = PORT_TO_PROXY;
+  args.bal = &balances;
+  
+  pthread_t tid;
+  int rc = pthread_create(&tid, NULL, listenPort, (void*)&args);
+			
+	if (rc != 0)
+	{
+		printf("THREAD %u: ERROR: Could not create child thread\n", (unsigned)pthread_self());
+		return -1;
+	}
 
   while(1)
   {
@@ -117,9 +242,14 @@ int main(int argc, char** argv)
           {
             cout << "ERROR: Maximum account balance is 2000000000" << endl;
           }
-          else if (amount > "2000000000")
+          else if (amount.size() == 10 && (amount[0] != '0' &&  amount[0] != '1' && amount[0] != '2'))
           {
             cout << "ERROR: Maximum account balance is 2000000000" << endl;
+          }
+          else if (amount.size() == 10 && amount[0] == '2' && (amount[1] != '0' || amount[2] != '0' || amount[3] != '0' || amount[4] != '0' ||
+                   amount[5] != '0' || amount[6] != '0' || amount[7] != '0' || amount[8] != '0' || amount[9] != '0'))
+          {
+            cout << "ERROR: Maximum account balance is 2000000000" << endl;       
           }
           else
           {
@@ -162,106 +292,11 @@ int main(int argc, char** argv)
       cout << "ERROR: Invalid command" << endl;
     }
 
-    /*cout << "listening..." << endl;
-    connfd = accept(listenfd, (struct sockaddr*)NULL, NULL);
-
-    bzero(recvBuff,1024);
-    n = recv(connfd, &recvBuff, 1023, 0);
-    printf("Recd: %d bytes\n", n);
-    printf("Received message: %s\n", recvBuff);
-
-    vector<string> sections;
-    stringstream ss(recvBuff);
-    string split;
-
-    while(getline(ss,split,'.'))
-    {
-      sections.push_back(split);
-    }
-
-    string output;
-
-    string username = sections[0];
-    bool validUsername = (balances.find(username) != balances.end());
-
-    if (!validUsername)
-    {
-      cout << "Your username has been compromised. Aborting session" << endl;
-      break;
-    }
-    else if (sections[1] == "Balance")
-    {
-      output = "Your balance is ";
-    }
-    else if (sections[1] == "Withdraw"){
-      int amount = atoi(sections[2].c_str());
-      if (amount > 10000 || sections[2].size() > 9)
-      {
-        output = "You may withdraw a maximum of $10,000 per transaction. Your balance is ";
-      }
-      else if (amount < 0)
-      {
-        output = "You must withdraw a positive amount. Your balance is ";
-      }
-      else if (amount > balances[username])
-      {
-        output = "Insufficient funds. Your balance is ";
-      }
-      else
-      {
-        balances[username] -= amount;
-        output = "Withdraw successful. Your balance is ";
-      }
-    }
-    else if (sections[1] == "Transfer")
-    {
-      int amount = atoi(sections[2].c_str());
-      if (amount > 10000 || sections[2].size() > 9)
-      {
-        output = "You may transfer a maximum of $10,000 per transaction. Your balance is ";
-      }
-      else if (amount < 0)
-      {
-        output = "You must transfer a positive amount. Your balance is ";
-      }
-      else if(amount > balances[username])
-      {
-        output = "Insufficient funds. Your balance is ";
-      }
-      else
-      {
-        string transfer_to = sections[3];
-        bool found_transfer = (balances.find(transfer_to) != balances.end());
-        
-        if (found_transfer)
-        {
-          balances[username] -= amount;
-          balances[transfer_to] += amount;
-          output = "Transfer successful. Your balance is ";
-        }
-        
-        else
-        {
-          output = "Unable to find target account. Please try again.\nYour balance is ";
-        }
-      }
-    }
-    else
-    {
-      output = "Something went wrong. Please try again.\nYour balance is ";
-    }
-
-    snprintf(sendBuff, sizeof(sendBuff), "%s%d\n", output.c_str(), balances[username]);
-    write(connfd, sendBuff, strlen(sendBuff));
-
-    close(connfd);*/
+    
 
   }
 
-
-
-
-
+  pthread_cancel(tid);
 
   return 0;
 }
