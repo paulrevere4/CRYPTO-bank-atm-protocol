@@ -82,7 +82,7 @@ void* listenPort(void* arguments)
       write(connfd, sendBuff, spki.size());
 
       bzero(recvBuff,1024);
-      n = recv(connfd, &recvBuff, 1023, 0);
+      n = recv(connfd, &recvBuff, 256, 0);
 
       string enc_msg = "";
       for ( unsigned int i = 0; i < 256; i++ ) {
@@ -181,8 +181,8 @@ void* listenPort(void* arguments)
       }
       else if (sections[1] == "Transfer")
       {
-        string amount = sections[2];
-        
+        string amount = sections[3];
+
         bool integer = true;
 				for (int i = 0; i < amount.size(); i++)
 				{
@@ -256,9 +256,9 @@ void* listenPort(void* arguments)
 
 
       bzero(recvBuff,1024);
-      n = read(connfd,recvBuff,1023);
+      n = read(connfd,recvBuff,292);
 
-      StringSource ssource((unsigned char*)recvBuff, 1023, true);
+      StringSource ssource((unsigned char*)recvBuff, 292, true);
 
       RSA::PublicKey publicKeyAtm;
       publicKeyAtm.Load(ssource);

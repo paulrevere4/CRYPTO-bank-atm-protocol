@@ -186,11 +186,10 @@ int main(int argc, char** argv)
 
 					n = write(sockfd,buffer,strlen(buffer));
 
-
 					bzero(buffer,1024);
-    				n = read(sockfd,buffer,1023);
+    				n = read(sockfd,buffer,292);
 
-    				StringSource ss((unsigned char*)buffer, 1023, true);
+    				StringSource ss((unsigned char*)buffer, 292, true);
 
     				RSA::PublicKey publicKeyBank;
 					publicKeyBank.Load(ss);
@@ -202,6 +201,7 @@ int main(int argc, char** argv)
 					for ( unsigned int i = 0; i < enc_msg.size(); i++ ) {
 				        buffer[i] = enc_msg[i];
 				    }
+
 					n = write(sockfd, buffer, enc_msg.size());
 					if (n < 0) 
     				{
@@ -235,17 +235,16 @@ int main(int argc, char** argv)
 
 					bzero(buffer,1024);
 
-					n = recv(sockfd, &buffer, 1023, 0);
+					n = recv(sockfd, &buffer, 256, 0);
 
 					string enc_res = "";
 					for ( unsigned int i = 0; i < 256; i++ ) {
-					enc_res += buffer[i];
+						enc_res += buffer[i];
 					}
 
 					string res_plaintext = decrypt(privateKeyAtm, enc_res);
 
 					string res_message = get_message_wout_hash(res_plaintext);
-
 
 					if ( !verify_message(res_plaintext) )
 					{
@@ -341,9 +340,9 @@ int main(int argc, char** argv)
 							n = write(sockfd,buffer,strlen(buffer));
 
 							bzero(buffer,1024);
-		    				n = read(sockfd,buffer,1023);
+		    				n = read(sockfd,buffer,292);
 
-		    				StringSource ss((unsigned char*)buffer, 1023, true);
+		    				StringSource ss((unsigned char*)buffer, 292, true);
 
 		    				RSA::PublicKey publicKey;
 							publicKey.Load(ss);
@@ -389,7 +388,7 @@ int main(int argc, char** argv)
 							write(sockfd, buffer, spki.size());
 
 							bzero(buffer,1024);
-							n = recv(sockfd, &buffer, 1023, 0);
+							n = recv(sockfd, &buffer, 256, 0);
 
 							string enc_res = "";
 							for ( unsigned int i = 0; i < 256; i++ ) {
@@ -428,7 +427,7 @@ int main(int argc, char** argv)
 					
 					string leftover;
 					getline(cin, leftover);
-					
+
 					bool integer = true;
 					for (int i = 0; i < amount.size(); i++)
 					{
@@ -437,7 +436,7 @@ int main(int argc, char** argv)
 							integer = false;
 						}
 					}
-					
+
 					if (!integer)
 					{
 						cout << "ERROR: The amount entered must be a positive integer" << endl;
