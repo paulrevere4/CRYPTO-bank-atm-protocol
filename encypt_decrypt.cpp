@@ -5,6 +5,7 @@
 // compile with: g++ encypt_decrypt.cpp -lcryptopp
 
 #include <iostream>
+#include <utility>
 
 #include <crypto++/rsa.h>
 #include <crypto++/osrng.h>
@@ -14,8 +15,10 @@
 using namespace CryptoPP;
 using namespace std;
 
-int main()
+pair<RSA::PrivateKey, RSA::PublicKey>
+getNewKeys()
 {
+  pair<RSA::PrivateKey, RSA::PublicKey> retVal;
 
   AutoSeededRandomPool randomNumberGenerator;
   InvertibleRSAFunction params;
@@ -24,38 +27,70 @@ int main()
   RSA::PrivateKey privateKey(params);
   RSA::PublicKey publicKey(params);
 
-  string plain = "Alice.Transfer.Bob.XXXXXXXXXX";
-  string cipher, recovered;
+  retVal.first = privateKey;
+  retVal.second = publicKey;
 
-  cout << "plaintext: " << plain << endl;
+  return retVal;
+}
 
-  //Encryption
+string
+encrypt(RSA::PublicKey publicKey, string plaintext)
+{
+  string retVal;
+
+  AutoSeededRandomPool randomNumberGenerator;
+
   RSAES_OAEP_SHA_Encryptor e(publicKey);
-
-  StringSource ss1(plain, 
+  
+  StringSource ss1(plaintext, 
       true,
       new PK_EncryptorFilter(randomNumberGenerator, 
           e, 
-          new StringSink(cipher)) // PK_EncryptorFilter
+          new StringSink(retVal)) // PK_EncryptorFilter
       ); // StringSource
 
-  cout << "ciphertext: " << cipher << endl;
+  return retVal;
+}
 
-  // Decryption
+string
+decrypt(RSA::PrivateKey privateKey, string ciphertext)
+{
+  string retVal;
+
+  AutoSeededRandomPool randomNumberGenerator;
+
   RSAES_OAEP_SHA_Decryptor d(privateKey);
 
-  StringSource ss2(cipher, 
+  StringSource ss2(ciphertext, 
       true,
       new PK_DecryptorFilter(randomNumberGenerator, 
           d, 
-          new StringSink(recovered)) // PK_DecryptorFilter
+          new StringSink(retVal)) // PK_DecryptorFilter
       ); // StringSource
 
-  cout << "recovered text: " << recovered << endl;
+  return retVal;
+}
 
+int main()
+{
+  //test function
+  pair<RSA::PrivateKey, RSA::PublicKey> keys = getNewKeys();
 
+  RSA::PrivateKey privateKey = keys.first;
+  RSA::PublicKey publicKey = keys.second;
 
+  // string plain = "Alice.Transfer.Bob.XXXXXXXXXX";
+  string plain = "Bob.Balance";
+  cout << "plaintext: " << plain << endl;
 
+  //Encryption
+  string ciphertext = encrypt(publicKey, plain);
+  cout << "ciphertext: " << ciphertext << endl;
+  cout << "ciphertext length: " << ciphertext.length() << endl;
+
+  // Decryption
+  string decryptedPlaintext = decrypt(privateKey, ciphertext);
+  cout << "recovered text: " << decryptedPlaintext << endl;
 
   return 0;
 }
